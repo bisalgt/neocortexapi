@@ -83,7 +83,7 @@ namespace NeoCortexApi.Encoders
                 IsRealCortexModel = false;
                 N = 0;
                 Resolution = -1.0;
-                Radius = -1.0;
+                Radius = 0.0;
                 Periodic = false;
                 ClipInput = false;
 

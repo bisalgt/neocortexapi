@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 
 namespace NeoCortexApi.Utility
@@ -780,6 +781,7 @@ namespace NeoCortexApi.Utility
         /// <param name="val">the value to set at the specified indexes.</param>
         public static void SetIndexesTo(int[] values, int[] indexes, int val)
         {
+            Debug.WriteLine($"values = {values}, indexes = {indexes}, val = {val}");
             for (int i = 0; i < indexes.Length; i++)
             {
                 values[indexes[i]] = val;

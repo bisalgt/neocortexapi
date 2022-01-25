@@ -3,102 +3,108 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using static NeoCortexApiSample.MultiSequenceLearning;
 
 namespace NeoCortexApiSample
 {
     class Program
     {
+
+        public static Dictionary<string, object> GetDefaultEncoderSettings()
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            // encoderSettings.Add("N", 12);
+            encoderSettings.Add("W", 3);
+            encoderSettings.Add("MinVal", (double)0);
+            encoderSettings.Add("MaxVal", (double)9);
+            // encoderSettings.Add("Radius", (double)6);
+            encoderSettings.Add("Resolution", (double)5);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            return encoderSettings;
+        }
+
         /// <summary>
-        /// This sample shows a typical experiment code for SP and TM.
-        /// You must start this code in debugger to follow the trace.
-        /// and TM.
+        /// This is the place to experiment with scalar encoder
+        ///
         /// </summary>
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            //
-            // Starts experiment that demonstrates how to learn spatial patterns.
-            SpatialPatternLearning experiment = new SpatialPatternLearning();
-            experiment.Run();
+            Debug.WriteLine("Inside the Main of ImproveScalarEncoder Namespace");
 
-            //
-            // Starts experiment that demonstrates how to learn spatial patterns.
-            //SequenceLearning experiment = new SequenceLearning();
-            //experiment.Run();
+            Dictionary<string, object> encoderSettings = GetDefaultEncoderSettings();
 
-            //RunMultiSimpleSequenceLearningExperiment();
-            //RunMultiSequenceLearningExperiment();
-        }
+            // checking different values of resolution that result in exception
+            //    for (int i = 1; i < 10; i++)
+            //    {
+            //        encoderSettings.Add("Resolution", (double)i);
+            //        Debug.WriteLine($"------Output for Resolutiont {i}-------------------");
 
-        private static void RunMultiSimpleSequenceLearningExperiment()
-        {
-            Dictionary<string, List<double>> sequences = new Dictionary<string, List<double>>();
+            //        try
+            //        {
+            //            NeoCortexApi.Encoders.ScalarEncoder encoderObject = new NeoCortexApi.Encoders.ScalarEncoder(encoderSettings);
+            //            CheckDifferentConfiguration(encoderObject);
 
-            sequences.Add("S1", new List<double>(new double[] { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, }));
-            sequences.Add("S2", new List<double>(new double[] { 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0 }));
+            //        }
+            //        catch (IndexOutOfRangeException ex)
+            //        {
+            //            Debug.WriteLine($"Index out of range exception at {i}, {ex.StackTrace}");
 
-            //
-            // Prototype for building the prediction engine.
-            MultiSequenceLearning experiment = new MultiSequenceLearning();
-            var predictor = experiment.Run(sequences);
-         
-        }
+            //        }
+            //        catch (OverflowException ex)
+            //        {
+            //            //Debug.WriteLine($"Overflow exception at {i}, {ex.StackTrace}");
+            //            //Debug.WriteLine($"Source : {ex.Source}");
+            //            //Debug.WriteLine($"TargetSite : {ex.TargetSite}");
+            //            //if (ex.Data.Count > 0)
+            //            //{
+            //            //    Debug.WriteLine("  Extra details:");
+            //            //    foreach (DictionaryEntry de in ex.Data)
+            //            //        Debug.WriteLine("    Key: {0,-20}      Value: {1}",
+            //            //                          "'" + de.Key.ToString() + "'", de.Value);
+            //            //}
+            //            //Debug.WriteLine($"Data : {ex.Data}");
+            //            Debug.WriteLine(ex.GetBaseException());
 
 
-        private static void RunMultiSequenceLearningExperiment()
-        {
-            Dictionary<string, List<double>> sequences = new Dictionary<string, List<double>>();
+            //        }
+            //        finally
+            //        {
+            //            encoderSettings.Remove("Resolution");
+            //            //Debug.WriteLine("-------------------------");
+            //        }
+            //    }
 
-            //sequences.Add("S1", new List<double>(new double[] { 0.0, 1.0, 0.0, 2.0, 3.0, 4.0, 5.0, 6.0, 5.0, 4.0, 3.0, 7.0, 1.0, 9.0, 12.0, 11.0, 12.0, 13.0, 14.0, 11.0, 12.0, 14.0, 5.0, 7.0, 6.0, 9.0, 3.0, 4.0, 3.0, 4.0, 3.0, 4.0 }));
-            //sequences.Add("S2", new List<double>(new double[] { 0.8, 2.0, 0.0, 3.0, 3.0, 4.0, 5.0, 6.0, 5.0, 7.0, 2.0, 7.0, 1.0, 9.0, 11.0, 11.0, 10.0, 13.0, 14.0, 11.0, 7.0, 6.0, 5.0, 7.0, 6.0, 5.0, 3.0, 2.0, 3.0, 4.0, 3.0, 4.0 }));
-
-            sequences.Add("S1", new List<double>(new double[] { 0.0, 1.0, 2.0, 3.0, 4.0, 2.0, 5.0, }));
-            sequences.Add("S2", new List<double>(new double[] { 8.0, 1.0, 2.0, 9.0, 10.0, 7.0, 11.00 }));
-
-            //
-            // Prototype for building the prediction engine.
-            MultiSequenceLearning experiment = new MultiSequenceLearning();
-            var predictor = experiment.Run(sequences);
-
-            var list1 = new double[] { 1.0, 2.0, 3.0 };
-            var list2 = new double[] { 2.0, 3.0, 4.0 };
-            var list3 = new double[] { 8.0, 1.0, 2.0 };
-
-            predictor.Reset();
-            PredictNextElement(predictor, list1);
-
-            predictor.Reset();
-            PredictNextElement(predictor, list2);
-
-            predictor.Reset();
-            PredictNextElement(predictor, list3);
-        }
-
-        private static void PredictNextElement(HtmPredictionEngine predictor, double[] list)
-        {
-            Debug.WriteLine("------------------------------");
-
-            foreach (var item in list)
+            try
             {
-                var res = predictor.Predict(item);
+                NeoCortexApi.Encoders.ScalarEncoder encoderObject = new NeoCortexApi.Encoders.ScalarEncoder(encoderSettings);
+                CheckDifferentConfiguration(encoderObject);
 
-                if (res.Count > 0)
-                {
-                    foreach (var pred in res)
-                    {
-                        Debug.WriteLine($"{pred.PredictedInput} - {pred.Similarity}");
-                    }
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                Debug.WriteLine($"Index out of range exception at resolution {5}, {ex.StackTrace}");
 
-                    var tokens = res.First().PredictedInput.Split('_');
-                    var tokens2 = res.First().PredictedInput.Split('-');
-                    Debug.WriteLine($"Predicted Sequence: {tokens[0]}, predicted next element {tokens2[tokens.Length - 1]}");
-                }
-                else
-                    Debug.WriteLine("Nothing predicted :(");
             }
 
-            Debug.WriteLine("------------------------------");
         }
+
+
+        /// <summary>
+        /// function to produce output for a certain configuration of encoder settings
+        /// </summary>
+        /// <param name="encObject"></param>
+            public static void CheckDifferentConfiguration(NeoCortexApi.Encoders.ScalarEncoder encObject)
+        {
+            int[] encodedData;
+            for (double i = encObject.MinVal; i < encObject.MaxVal; i++)
+            {
+
+                // Debug.WriteLine(encObject.N);
+                encodedData = encObject.Encode(i);
+                Debug.WriteLine($"Input : {i} = {String.Join(',', encodedData)}");
+            }
+        }
+
     }
 }
