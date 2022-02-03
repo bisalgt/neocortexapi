@@ -781,7 +781,19 @@ namespace NeoCortexApi.Utility
         /// <param name="val">the value to set at the specified indexes.</param>
         public static void SetIndexesTo(int[] values, int[] indexes, int val)
         {
-            Debug.WriteLine($"values = {values}, indexes = {indexes}, val = {val}");
+            // Debug.WriteLine($"values = {values}, indexes = {indexes}, val = {val}");
+            foreach(int v in values)
+            {
+                int j = 0;
+                Debug.WriteLine($"Value[{j}] = {v}");
+                j++;
+            }
+            foreach (int idx in indexes)
+            {
+                int k = 0;
+                Debug.WriteLine($"Indexes[{k}] = {idx}");
+                k++;
+            }
             for (int i = 0; i < indexes.Length; i++)
             {
                 values[indexes[i]] = val;

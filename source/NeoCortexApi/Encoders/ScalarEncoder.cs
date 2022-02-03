@@ -154,7 +154,7 @@ namespace NeoCortexApi.Encoders
                 }
 
                 double nFloat = w * (Range / Radius) + 2 * Padding;
-                N = (int)(nFloat);
+                N = (int)Math.Ceiling(nFloat);
             }
         }
 
@@ -212,7 +212,10 @@ namespace NeoCortexApi.Encoders
             }
             else
             {
-                centerbin = ((int)(((input - MinVal) + Resolution / 2) / Resolution)) + Padding;
+                double Temp = ((((input - MinVal) + Resolution / 2) / Resolution)) + Padding;
+                centerbin = (int)Temp;
+
+                // centerbin = ((int)(((input - MinVal) + Resolution / 2) / Resolution)) + Padding;
             }
 
             return centerbin - HalfWidth;
@@ -258,7 +261,7 @@ namespace NeoCortexApi.Encoders
                         minbin = 0;
                     }
                 }
-
+                Debug.WriteLine($"minbin = {minbin} , maxbin = {maxbin}");
                 ArrayUtils.SetIndexesTo(output, ArrayUtils.Range(minbin, maxbin + 1), 1);
             }
 
