@@ -785,13 +785,13 @@ namespace NeoCortexApi.Utility
             foreach(int v in values)
             {
                 int j = 0;
-                Debug.WriteLine($"Value[{j}] = {v}");
+                //Debug.WriteLine($"Value[{j}] = {v}");
                 j++;
             }
             foreach (int idx in indexes)
             {
                 int k = 0;
-                Debug.WriteLine($"Indexes[{k}] = {idx}");
+                //Debug.WriteLine($"Indexes[{k}] = {idx}");
                 k++;
             }
             for (int i = 0; i < indexes.Length; i++)

@@ -82,7 +82,7 @@ namespace NeoCortexApi.Encoders
                 Name = this.GetType().Name;
                 IsRealCortexModel = false;
                 N = 0;
-                Resolution = -1.0;
+                Resolution = 0.0;
                 Radius = 0.0;
                 Periodic = false;
                 ClipInput = false;

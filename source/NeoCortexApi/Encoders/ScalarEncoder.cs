@@ -105,7 +105,83 @@ namespace NeoCortexApi.Encoders
         {
             if (n != 0)
             {
-                if (double.NaN != minVal && double.NaN != maxVal)
+
+                if (n <= w)
+                {
+                    throw new ArgumentException(
+                        "Total Number of output bits (N) must be greater than number of active bits (W) for a ScalarEncoder."
+                    );
+                }
+
+                if (!Periodic)
+                {
+                    int requiredN = (int)(w + maxVal - minVal);
+                    if (n < requiredN)
+                    {
+                        Console.WriteLine(
+                            $"The value of N is less than required {requiredN} for resolution of 1.This might cause some output SDRs to overlap."
+                            );
+
+                        Console.WriteLine("Are you sure you want to proceed with the entered value of N or " +
+                            "do you want to use recommended N ? " +
+                            "\n\nEnter [yes] if you would like to update N to minimum required. [no] if you don't.");
+                        ///
+                        ///
+                        ///Adding while loop to take a valid input from the user.
+                        ///yes or y || no or n are only valid
+                        ///
+                        bool checker = true;
+                        while(checker)
+                        {
+                            string tempN = Console.ReadLine().ToLower();
+                            if (tempN == "no" || tempN == "n")
+                            {
+                                Console.WriteLine("Noted : NO!\nKeeping N as it is.");
+                                checker = false;
+                            }
+                            else if (tempN == "yes" || tempN == "y")
+                            {
+                                Console.WriteLine("Noted: YES!\nUpdating N to appropriate value.");
+                                N = requiredN;
+                                checker = false;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Enter either yes or no!");
+                            }
+                        }
+                                               
+                        
+                    }
+                }
+               
+                if (radius != 0 || resolution != 0)
+                {
+                    if(radius != 0)
+                    {
+                        if(resolution != 0)
+                        {
+                            throw new ArgumentException(
+                                "Only one of the parameter: output bits(N), Radius or Resolution should be specified for a Scalar Encoder."
+                            );
+                        }
+                        else
+                        {
+                            throw new ArgumentException(
+                                "Only one of the parameter: output bits(N) or Radius should be specified for a Scalar Encoder."
+                            );
+                        }
+                        
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            "Only one of the parameter: output bits(N) or Resolution should be specified for a Scalar Encoder."
+                        );
+                    }
+                }
+
+                else if (double.NaN != minVal && double.NaN != maxVal)
                 {
                     if (!Periodic)
                     {
@@ -132,6 +208,12 @@ namespace NeoCortexApi.Encoders
             {
                 if (radius != 0)
                 {
+                    if (resolution != 0)
+                    {
+                        throw new ArgumentException(
+                            "Only one of the Radius or Resolution should be specified for a ScalarEncoder!"
+                            );
+                    }
                     Resolution = Radius / w;
                 }
                 else if (resolution != 0)
