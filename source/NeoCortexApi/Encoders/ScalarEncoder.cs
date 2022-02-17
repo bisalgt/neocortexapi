@@ -42,6 +42,80 @@ namespace NeoCortexApi.Encoders
         }
 
         /// <summary>
+        /// Parses the arguments array into dictionary of appropriate properties.
+        /// After parsing and creating a dictionary,
+        /// it calls <see cref="EncoderBase.Initialize(Dictionary{string, object})"/>.
+        /// This initializes to create an ScalarEncoder object
+        /// </summary>
+        /// <param name="args"></param>
+        public ScalarEncoder(string[] args)
+        {
+            if (args.Length <= 1)
+            {
+                throw new ArgumentException("No or incomplete arguments provided for ScalarEncoder.");
+            }
+            else
+            {
+                Dictionary<string, object> encoderSettingsRaw = new Dictionary<string, object> { };
+                
+                for(int i= 0;i < args.Length; i += 2)
+                {
+                    encoderSettingsRaw.Add(args[i].Split("--")[1], args[i+1]);
+                    
+                }
+
+                Dictionary<string, object> encoderSettings = new Dictionary<string, object> { };
+
+                foreach (var item in encoderSettingsRaw)
+                {
+                    try
+                    {
+                        if (item.Key == "N" || item.Key == "n")
+                        {
+                            encoderSettings.Add("N", Convert.ToInt32(item.Value));
+                        }
+                        if (item.Key == "W" || item.Key == "w")
+                        {
+                            encoderSettings.Add("W", Convert.ToInt32(item.Value));
+                        }
+                        if (item.Key == "MinVal" || item.Key == "minval" || item.Key == "minvalue")
+                        {
+                            encoderSettings.Add("MinVal", Convert.ToDouble(item.Value));
+                        }
+                        if (item.Key == "MaxVal" || item.Key == "maxval" || item.Key == "maxvalue")
+                        {
+                            encoderSettings.Add("MaxVal", Convert.ToDouble(item.Value));
+                        }
+                        if (item.Key == "Radius" || item.Key == "radius")
+                        {
+                            encoderSettings.Add("Radius", Convert.ToDouble(item.Value));
+                        }
+                        if (item.Key == "Resolution" || item.Key == "resolution")
+                        {
+                            encoderSettings.Add("Resolution", Convert.ToDouble(item.Value));
+                        }
+                        if (item.Key == "Periodic" || item.Key == "periodic")
+                        {
+                            encoderSettings.Add("Periodic", Convert.ToBoolean(item.Value));
+                        }
+                        if (item.Key == "ClipInput" || item.Key == "clipinput")
+                        {
+                            encoderSettings.Add("ClipInput", Convert.ToBoolean(item.Value));
+                        }
+                    }
+                    catch (FormatException ex)
+                    {
+                        throw new ArgumentException($"Unable to convert the argument to proper type for ScalarEncoder settings. \n {ex}");
+
+                    };                  
+                }
+
+                this.Initialize(encoderSettings);
+            }
+        }
+
+
+        /// <summary>
         /// The AfterInitialize
         /// </summary>
         public override void AfterInitialize()
@@ -119,7 +193,8 @@ namespace NeoCortexApi.Encoders
                     if (n < requiredN)
                     {
                         Console.WriteLine(
-                            $"The value of N is less than required {requiredN} for resolution of 1.This might cause some output SDRs to overlap."
+                            $"The value of N is less than required {requiredN} for resolution of 1." +
+                            $"This might cause some output SDRs to overlap."
                             );
 
                         Console.WriteLine("Are you sure you want to proceed with the entered value of N or " +
@@ -383,5 +458,6 @@ namespace NeoCortexApi.Encoders
         {
             throw new NotImplementedException();
         }
+
     }
 }

@@ -12,13 +12,13 @@ namespace NeoCortexApiSample
         public static Dictionary<string, object> GetDefaultEncoderSettings()
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("N", 9);
+            encoderSettings.Add("N", 14);
             encoderSettings.Add("W", 3);
-            encoderSettings.Add("MinVal", (double)0);
-            encoderSettings.Add("MaxVal", (double)9);
+            encoderSettings.Add("MinVal", (double)1);
+            encoderSettings.Add("MaxVal", (double)8);
             //encoderSettings.Add("Radius", (double)6);
             //encoderSettings.Add("Resolution", (double)3);
-            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("Periodic", (bool)true);
             encoderSettings.Add("ClipInput", (bool)true);
             return encoderSettings;
         }
@@ -30,7 +30,12 @@ namespace NeoCortexApiSample
         /// <param name="args"></param>
         static void Main(string[] args)
         {
+            //if(args != null)
+            //{
+            //    Console.WriteLine(args)
+            //}
             Debug.WriteLine("Inside the Main of ImproveScalarEncoder Namespace");
+            Console.WriteLine("Inside the Main of ImproveScalarEncoder Namespace");
 
             Dictionary<string, object> encoderSettings = GetDefaultEncoderSettings();
 
@@ -77,7 +82,7 @@ namespace NeoCortexApiSample
 
             try
             {
-                NeoCortexApi.Encoders.ScalarEncoder encoderObject = new NeoCortexApi.Encoders.ScalarEncoder(encoderSettings);
+                NeoCortexApi.Encoders.ScalarEncoder encoderObject = new NeoCortexApi.Encoders.ScalarEncoder(args);
                 CheckDifferentConfiguration(encoderObject);
 
             }
@@ -97,7 +102,7 @@ namespace NeoCortexApiSample
         public static void CheckDifferentConfiguration(NeoCortexApi.Encoders.ScalarEncoder encObject)
         {
             int[] encodedData;
-            for (double i = encObject.MinVal; i < encObject.MaxVal + 1; i++)
+            for (double i = encObject.MinVal; i < encObject.MaxVal + 1; i += encObject.Resolution)
             {
                 if ( (i >= encObject.MinVal) && (i <= encObject.MaxVal) )
                 {
@@ -107,7 +112,8 @@ namespace NeoCortexApiSample
                     {
 
                         encodedData = encObject.Encode(i);
-                        Debug.WriteLine($"Input : {i} = {String.Join(',', encodedData)}");
+                         Debug.WriteLine($"Input : {i} = {String.Join(',', encodedData)}");
+                         Console.WriteLine($"Input : {i} = {String.Join(',', encodedData)}");
                     }
                     catch (IndexOutOfRangeException)
                     {
