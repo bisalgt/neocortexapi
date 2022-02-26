@@ -1,10 +1,11 @@
-﻿using NeoCortexApi.Encoders;
+﻿using NeoCortexApi;
+using NeoCortexApi.Encoders;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace NeoCortexApiSample
+namespace ScalarEncoderImproved
 {
     class Program
     {
@@ -70,7 +71,7 @@ namespace NeoCortexApiSample
             //        //}
             //        //Debug.WriteLine($"Data : {ex.Data}");
             //        Debug.WriteLine(ex.GetBaseException());
-
+            
 
             //    }
             //    finally
@@ -82,7 +83,7 @@ namespace NeoCortexApiSample
 
             try
             {
-                NeoCortexApi.Encoders.ScalarEncoder encoderObject = new NeoCortexApi.Encoders.ScalarEncoder(encoderSettings);
+                NeoCortexApi.Encoders.ScalarEncoderImproved encoderObject = new NeoCortexApi.Encoders.ScalarEncoderImproved(encoderSettings);
                 CheckDifferentConfiguration(encoderObject);
 
             }
@@ -99,12 +100,12 @@ namespace NeoCortexApiSample
         /// function to produce output for a certain configuration of encoder settings
         /// </summary>
         /// <param name="encObject"></param>
-        public static void CheckDifferentConfiguration(NeoCortexApi.Encoders.ScalarEncoder encObject)
+        public static void CheckDifferentConfiguration(NeoCortexApi.Encoders.ScalarEncoderImproved encObject)
         {
             int[] encodedData;
             for (double i = encObject.MinVal; i < encObject.MaxVal + 1; i += encObject.Resolution)
             {
-                if ( (i >= encObject.MinVal) && (i <= encObject.MaxVal) )
+                if ((i >= encObject.MinVal) && (i <= encObject.MaxVal - 1))
                 {
 
                     Debug.WriteLine($"--------input data {i}----Resoultuion {encObject.Resolution}---------");
@@ -112,8 +113,8 @@ namespace NeoCortexApiSample
                     {
 
                         encodedData = encObject.Encode(i);
-                         Debug.WriteLine($"Input : {i} = {String.Join(',', encodedData)}");
-                         Console.WriteLine($"Input : {i} = {String.Join(',', encodedData)}");
+                        Debug.WriteLine($"Input : {i} = {String.Join(',', encodedData)}");
+                        Console.WriteLine($"Input : {i} = {String.Join(',', encodedData)}");
                     }
                     catch (IndexOutOfRangeException)
                     {
@@ -121,8 +122,9 @@ namespace NeoCortexApiSample
                         break;
                     }
                 }
-                else {
-                Debug.WriteLine($"Skipped : {i}");
+                else
+                {
+                    Debug.WriteLine($"Skipped : {i}");
                 }
             }
         }
