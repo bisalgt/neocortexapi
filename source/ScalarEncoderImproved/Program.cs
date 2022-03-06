@@ -13,10 +13,10 @@ namespace ScalarEncoderImproved
         public static Dictionary<string, object> GetDefaultEncoderSettings()
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("N", 14);
+            encoderSettings.Add("N", 11);
             encoderSettings.Add("W", 3);
-            encoderSettings.Add("MinVal", (double)1);
-            encoderSettings.Add("MaxVal", (double)8);
+            encoderSettings.Add("MinVal", (double)11);
+            encoderSettings.Add("MaxVal", (double)19);
             //encoderSettings.Add("Radius", (double)6);
             //encoderSettings.Add("Resolution", (double)3);
             encoderSettings.Add("Periodic", (bool)true);

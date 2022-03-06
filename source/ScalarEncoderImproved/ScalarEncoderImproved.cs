@@ -67,39 +67,42 @@ namespace NeoCortexApi.Encoders
 
                 Dictionary<string, object> encoderSettings = new Dictionary<string, object> { };
 
+                // Loops through each items of dictionary which was created using the command line args.
+                // if match is found, converts the corresponding item and its value to appropriate form
+                // so that Encode method can take encoderSettings to encode the data.
                 foreach (var item in encoderSettingsRaw)
                 {
                     try
                     {
-                        if (item.Key == "N" || item.Key == "n")
+                        if (item.Key.ToLower() == "n")
                         {
                             encoderSettings.Add("N", Convert.ToInt32(item.Value));
                         }
-                        if (item.Key == "W" || item.Key == "w")
+                        if (item.Key.ToLower() == "w")
                         {
                             encoderSettings.Add("W", Convert.ToInt32(item.Value));
                         }
-                        if (item.Key == "MinVal" || item.Key == "minval" || item.Key == "minvalue")
+                        if (item.Key.ToLower() == "minval" || item.Key == "minvalue")
                         {
                             encoderSettings.Add("MinVal", Convert.ToDouble(item.Value));
                         }
-                        if (item.Key == "MaxVal" || item.Key == "maxval" || item.Key == "maxvalue")
+                        if (item.Key.ToLower() == "maxval" || item.Key == "maxvalue")
                         {
                             encoderSettings.Add("MaxVal", Convert.ToDouble(item.Value));
                         }
-                        if (item.Key == "Radius" || item.Key == "radius")
+                        if (item.Key.ToLower() == "radius")
                         {
                             encoderSettings.Add("Radius", Convert.ToDouble(item.Value));
                         }
-                        if (item.Key == "Resolution" || item.Key == "resolution")
+                        if (item.Key.ToLower() == "resolution")
                         {
                             encoderSettings.Add("Resolution", Convert.ToDouble(item.Value));
                         }
-                        if (item.Key == "Periodic" || item.Key == "periodic")
+                        if (item.Key.ToLower() == "periodic")
                         {
                             encoderSettings.Add("Periodic", Convert.ToBoolean(item.Value));
                         }
-                        if (item.Key == "ClipInput" || item.Key == "clipinput")
+                        if (item.Key.ToLower() == "clipinput")
                         {
                             encoderSettings.Add("ClipInput", Convert.ToBoolean(item.Value));
                         }
