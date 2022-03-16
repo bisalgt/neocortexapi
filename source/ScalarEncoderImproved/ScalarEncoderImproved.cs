@@ -69,7 +69,7 @@ namespace NeoCortexApi.Encoders
 
                 // Loops through each items of dictionary which was created using the command line args.
                 // if match is found, converts the corresponding item and its value to appropriate form
-                // so that Encode method can take encoderSettings to encode the data.
+                // so that Encode method can take this encoderSettings to encode the data.
                 foreach (var item in encoderSettingsRaw)
                 {
                     try
@@ -181,6 +181,10 @@ namespace NeoCortexApi.Encoders
 
         protected void InitEncoder(int w, double minVal, double maxVal, int n, double radius, double resolution)
         {
+
+            // N, radius and resolution are mutually exclusive parameters that determine
+            // overall size of the ouptut. Only one of them should be set when setting encoderSettings.
+            // Remaining two MUST be zero.
             if (n != 0)
             {
 
@@ -206,8 +210,9 @@ namespace NeoCortexApi.Encoders
                             "\n\nEnter [yes] if you would like to update N to minimum required. [no] if you don't.");
                         ///
                         ///
-                        ///Adding while loop to take a valid input from the user.
-                        ///yes or y || no or n are only valid
+                        ///Adding while loop to take a valid input from the user console.
+                        ///This makes sure that for a given configuration, there would be different encodings.
+                        ///yes or y || no or n are only valid input
                         ///
                         bool checker = true;
                         while(checker)
@@ -233,7 +238,8 @@ namespace NeoCortexApi.Encoders
                         
                     }
                 }
-               
+
+                
                 if (radius != 0 || resolution != 0)
                 {
                     if(radius != 0)
@@ -315,6 +321,8 @@ namespace NeoCortexApi.Encoders
                 }
 
                 double nFloat = w * (Range / Radius) + 2 * Padding;
+
+                // Math.ceiling makes sure there are required number of Total bits
                 N = (int)Math.Ceiling(nFloat);
             }
         }
@@ -373,10 +381,8 @@ namespace NeoCortexApi.Encoders
             }
             else
             {
-                double Temp = ((((input - MinVal) + Resolution / 2) / Resolution)) + Padding;
-                centerbin = (int)Temp;
 
-                // centerbin = ((int)(((input - MinVal) + Resolution / 2) / Resolution)) + Padding;
+                centerbin = ((int)(((input - MinVal) + Resolution / 2) / Resolution)) + Padding;
             }
 
             return centerbin - HalfWidth;

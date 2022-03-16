@@ -13,13 +13,13 @@ namespace ScalarEncoderImproved
         public static Dictionary<string, object> GetDefaultEncoderSettings()
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("N", 11);
+            //encoderSettings.Add("N", 12);
             encoderSettings.Add("W", 3);
             encoderSettings.Add("MinVal", (double)11);
             encoderSettings.Add("MaxVal", (double)19);
             //encoderSettings.Add("Radius", (double)6);
-            //encoderSettings.Add("Resolution", (double)3);
-            encoderSettings.Add("Periodic", (bool)true);
+            encoderSettings.Add("Resolution", (double)0.5);
+            encoderSettings.Add("Periodic", (bool)false);
             encoderSettings.Add("ClipInput", (bool)true);
             return encoderSettings;
         }
@@ -40,7 +40,7 @@ namespace ScalarEncoderImproved
 
             Dictionary<string, object> encoderSettings = GetDefaultEncoderSettings();
 
-            // checking different values of N
+            // checking different values of N at a time
             //for (int i = 4; i < 20; i++)
             //{
             //    //encoderSettings.Add("N", i);
@@ -99,7 +99,7 @@ namespace ScalarEncoderImproved
         /// <summary>
         /// function to produce output for a certain configuration of encoder settings
         /// </summary>
-        /// <param name="encObject"></param>
+        /// <param name="encObject"> ScalarEncoderImproved Object</param>
         public static void CheckDifferentConfiguration(NeoCortexApi.Encoders.ScalarEncoderImproved encObject)
         {
             int[] encodedData;
