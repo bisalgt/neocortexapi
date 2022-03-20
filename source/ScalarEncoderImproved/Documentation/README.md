@@ -67,11 +67,18 @@ Instead of using N and Resolution, this time I proceed with the experimentation 
 
 ### Finding 7
 As a comment to above Finding 5, I worked with various values of Resolutions (With out setting N or Radius). System.OverFlowException was occured because the default Radius configuration was negative(-1). This resulted in negative value of N. Since the output array was initialized using the value : 
-```output = int[N]``` 
-This resulted in OverFlowException. Image is attached as a description. 
-![OverFlow Error Issue Found and Solved](./Images/Detailed-Overflow-exception.png)
 
-Setting the default value of Radius to 0, N was no longer negative and OverFlow exception was solved.
+```
+output = int[N]
+```
+
+This resulted in OverFlowException.
+
+Setting the default value of Radius to 0 inside the Initialize method of EncoderBase.cs file, N was no longer negative and OverFlow exception was solved.
+
+![IndexOutOfRangeError](./Images/Parameter-Default-Value-Set.png)
+
+
 After solving the issue of OverFlow, System.IndexOutOfRangeException was viewed in some input space with different value of Resolution, to solve this issue, implementation is checked and improved on the forked [Forked NeocortexApi from Damir Dobric](https://github.com/bisalgt/neocortexapi)
 
 ### Finding 8
@@ -110,7 +117,8 @@ This had been implemented on the forked repository[Adding Parameter Checks](http
 
 For effective handling the parameters when there are values in case of multiple mutually exclusive parameters (N, Radius, Resolution), Resolution is set to 0. This makes it easy to implement the if else block inside InitEncoder.
 
-The Scalar Encoder is made interactive by giving the User option to enter data on the console. Based on the input string by the User, the value of N was set and decisions was taken accordingly for SDRs generations.
+The Scalar Encoder is made interactive by giving the User option to enter data on the console. Based on the input string by the User, the value of N was set and decisions was taken accordingly for SDRs generations. Image is attached for the use case.
+![Interactive Terminal ](./Images/Interactive-Terminal.png)
 
 ### Finding 11
 
