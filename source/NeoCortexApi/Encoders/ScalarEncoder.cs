@@ -42,80 +42,6 @@ namespace NeoCortexApi.Encoders
         }
 
         /// <summary>
-        /// Parses the arguments array into dictionary of appropriate properties.
-        /// After parsing and creating a dictionary,
-        /// it calls <see cref="EncoderBase.Initialize(Dictionary{string, object})"/>.
-        /// This initializes to create an ScalarEncoder object
-        /// </summary>
-        /// <param name="args"></param>
-        public ScalarEncoder(string[] args)
-        {
-            if (args.Length <= 1)
-            {
-                throw new ArgumentException("No or incomplete arguments provided for ScalarEncoder.");
-            }
-            else
-            {
-                Dictionary<string, object> encoderSettingsRaw = new Dictionary<string, object> { };
-                
-                for(int i= 0;i < args.Length; i += 2)
-                {
-                    encoderSettingsRaw.Add(args[i].Split("--")[1], args[i+1]);
-                    
-                }
-
-                Dictionary<string, object> encoderSettings = new Dictionary<string, object> { };
-
-                foreach (var item in encoderSettingsRaw)
-                {
-                    try
-                    {
-                        if (item.Key == "N" || item.Key == "n")
-                        {
-                            encoderSettings.Add("N", Convert.ToInt32(item.Value));
-                        }
-                        if (item.Key == "W" || item.Key == "w")
-                        {
-                            encoderSettings.Add("W", Convert.ToInt32(item.Value));
-                        }
-                        if (item.Key == "MinVal" || item.Key == "minval" || item.Key == "minvalue")
-                        {
-                            encoderSettings.Add("MinVal", Convert.ToDouble(item.Value));
-                        }
-                        if (item.Key == "MaxVal" || item.Key == "maxval" || item.Key == "maxvalue")
-                        {
-                            encoderSettings.Add("MaxVal", Convert.ToDouble(item.Value));
-                        }
-                        if (item.Key == "Radius" || item.Key == "radius")
-                        {
-                            encoderSettings.Add("Radius", Convert.ToDouble(item.Value));
-                        }
-                        if (item.Key == "Resolution" || item.Key == "resolution")
-                        {
-                            encoderSettings.Add("Resolution", Convert.ToDouble(item.Value));
-                        }
-                        if (item.Key == "Periodic" || item.Key == "periodic")
-                        {
-                            encoderSettings.Add("Periodic", Convert.ToBoolean(item.Value));
-                        }
-                        if (item.Key == "ClipInput" || item.Key == "clipinput")
-                        {
-                            encoderSettings.Add("ClipInput", Convert.ToBoolean(item.Value));
-                        }
-                    }
-                    catch (FormatException ex)
-                    {
-                        throw new ArgumentException($"Unable to convert the argument to proper type for ScalarEncoder settings. \n {ex}");
-
-                    };                  
-                }
-
-                this.Initialize(encoderSettings);
-            }
-        }
-
-
-        /// <summary>
         /// The AfterInitialize
         /// </summary>
         public override void AfterInitialize()
@@ -179,84 +105,7 @@ namespace NeoCortexApi.Encoders
         {
             if (n != 0)
             {
-
-                if (n <= w)
-                {
-                    throw new ArgumentException(
-                        "Total Number of output bits (N) must be greater than number of active bits (W) for a ScalarEncoder."
-                    );
-                }
-
-                if (!Periodic)
-                {
-                    int requiredN = (int)(w + maxVal - minVal);
-                    if (n < requiredN)
-                    {
-                        Console.WriteLine(
-                            $"The value of N is less than required {requiredN} for resolution of 1." +
-                            $"This might cause some output SDRs to overlap."
-                            );
-
-                        Console.WriteLine("Are you sure you want to proceed with the entered value of N or " +
-                            "do you want to use recommended N ? " +
-                            "\n\nEnter [yes] if you would like to update N to minimum required. [no] if you don't.");
-                        ///
-                        ///
-                        ///Adding while loop to take a valid input from the user.
-                        ///yes or y || no or n are only valid
-                        ///
-                        bool checker = true;
-                        while(checker)
-                        {
-                            string tempN = Console.ReadLine().ToLower();
-                            if (tempN == "no" || tempN == "n")
-                            {
-                                Console.WriteLine("Noted : NO!\nKeeping N as it is.");
-                                checker = false;
-                            }
-                            else if (tempN == "yes" || tempN == "y")
-                            {
-                                Console.WriteLine("Noted: YES!\nUpdating N to appropriate value.");
-                                N = requiredN;
-                                checker = false;
-                            }
-                            else
-                            {
-                                Console.WriteLine("Enter either yes or no!");
-                            }
-                        }
-                                               
-                        
-                    }
-                }
-               
-                if (radius != 0 || resolution != 0)
-                {
-                    if(radius != 0)
-                    {
-                        if(resolution != 0)
-                        {
-                            throw new ArgumentException(
-                                "Only one of the parameter: output bits(N), Radius or Resolution should be specified for a Scalar Encoder."
-                            );
-                        }
-                        else
-                        {
-                            throw new ArgumentException(
-                                "Only one of the parameter: output bits(N) or Radius should be specified for a Scalar Encoder."
-                            );
-                        }
-                        
-                    }
-                    else
-                    {
-                        throw new ArgumentException(
-                            "Only one of the parameter: output bits(N) or Resolution should be specified for a Scalar Encoder."
-                        );
-                    }
-                }
-
-                else if (double.NaN != minVal && double.NaN != maxVal)
+                if (double.NaN != minVal && double.NaN != maxVal)
                 {
                     if (!Periodic)
                     {
@@ -283,12 +132,6 @@ namespace NeoCortexApi.Encoders
             {
                 if (radius != 0)
                 {
-                    if (resolution != 0)
-                    {
-                        throw new ArgumentException(
-                            "Only one of the Radius or Resolution should be specified for a ScalarEncoder!"
-                            );
-                    }
                     Resolution = Radius / w;
                 }
                 else if (resolution != 0)
@@ -311,7 +154,7 @@ namespace NeoCortexApi.Encoders
                 }
 
                 double nFloat = w * (Range / Radius) + 2 * Padding;
-                N = (int)Math.Ceiling(nFloat);
+                N = (int)(nFloat);
             }
         }
 
@@ -369,10 +212,7 @@ namespace NeoCortexApi.Encoders
             }
             else
             {
-                double Temp = ((((input - MinVal) + Resolution / 2) / Resolution)) + Padding;
-                centerbin = (int)Temp;
-
-                // centerbin = ((int)(((input - MinVal) + Resolution / 2) / Resolution)) + Padding;
+                centerbin = ((int)(((input - MinVal) + Resolution / 2) / Resolution)) + Padding;
             }
 
             return centerbin - HalfWidth;
@@ -418,7 +258,6 @@ namespace NeoCortexApi.Encoders
                         minbin = 0;
                     }
                 }
-                Debug.WriteLine($"minbin = {minbin} , maxbin = {maxbin}");
                 ArrayUtils.SetIndexesTo(output, ArrayUtils.Range(minbin, maxbin + 1), 1);
             }
 
@@ -458,6 +297,5 @@ namespace NeoCortexApi.Encoders
         {
             throw new NotImplementedException();
         }
-
     }
 }
