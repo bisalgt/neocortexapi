@@ -13,12 +13,12 @@ namespace ScalarEncoderImproved
         public static Dictionary<string, object> GetDefaultEncoderSettings()
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            //encoderSettings.Add("N", 12);
+            encoderSettings.Add("N", 11);
             encoderSettings.Add("W", 3);
-            encoderSettings.Add("MinVal", (double)11);
-            encoderSettings.Add("MaxVal", (double)19);
+            encoderSettings.Add("MinVal", (double)0);
+            encoderSettings.Add("MaxVal", (double)9);
             //encoderSettings.Add("Radius", (double)6);
-            encoderSettings.Add("Resolution", (double)0.5);
+            //encoderSettings.Add("Resolution", (double)0.5);
             encoderSettings.Add("Periodic", (bool)false);
             encoderSettings.Add("ClipInput", (bool)true);
             return encoderSettings;
@@ -40,19 +40,19 @@ namespace ScalarEncoderImproved
 
             Dictionary<string, object> encoderSettings = GetDefaultEncoderSettings();
 
-            // checking different values of N at a time
-            //for (int i = 4; i < 20; i++)
+            // checking different values of Resolution at a time
+            //for (double i = 1; i < 10; i++)
             //{
-            //    //encoderSettings.Add("N", i);
-            //    Debug.WriteLine($"------Output for N {i}-------------------");
+            //encoderSettings.Add("Resolution", i);
+            //Debug.WriteLine($"------Output for Resolution {i}-------------------");
 
-            //    try
-            //    {
+            //try
+            // {
             //        NeoCortexApi.Encoders.ScalarEncoder encoderObject = new NeoCortexApi.Encoders.ScalarEncoder(encoderSettings);
             //        CheckDifferentConfiguration(encoderObject);
 
             //    }
-            //    catch (IndexOutOfRangeException ex)
+            // catch (IndexOutOfRangeException ex)
             //    {
             //        Debug.WriteLine($"Index out of range exception at {i}");
 
@@ -71,13 +71,13 @@ namespace ScalarEncoderImproved
             //        //}
             //        //Debug.WriteLine($"Data : {ex.Data}");
             //        Debug.WriteLine(ex.GetBaseException());
-            
+
 
             //    }
             //    finally
             //    {
-            //        //encoderSettings.Remove("N");
-            //        //Debug.WriteLine("-------------------------");
+            //        encoderSettings.Remove("Resolution");
+            //        Debug.WriteLine("-------------------------");
             //    }
             //}
 
@@ -103,12 +103,12 @@ namespace ScalarEncoderImproved
         public static void CheckDifferentConfiguration(NeoCortexApi.Encoders.ScalarEncoderImproved encObject)
         {
             int[] encodedData;
-            for (double i = encObject.MinVal; i < encObject.MaxVal + 1; i += encObject.Resolution)
+            for (double i = encObject.MinVal; i < encObject.MaxVal + 1; i += 1)
             {
-                if ((i >= encObject.MinVal) && (i <= encObject.MaxVal - 1))
+                if ((i >= encObject.MinVal) && (i <= encObject.MaxVal))
                 {
 
-                    Debug.WriteLine($"--------input data {i}----Resoultuion {encObject.Resolution}---------");
+                    Debug.WriteLine($"--------input data {i}----Resolution {encObject.Resolution}---------");
                     try
                     {
 
