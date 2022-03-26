@@ -56,27 +56,32 @@ namespace ScalarEncoderImproved
             // if condition checking if N is provided
             if ((Int32)encoderSettings.GetValueOrDefault("N", 0) != 0)
             {
+                int requiredN;
                 if (!(Boolean)(encoderSettings["Periodic"]))
                 {
+                    requiredN = (int)Math.Ceiling((int)encoderSettings["W"] + (double)encoderSettings["MaxVal"] - (double)encoderSettings["MinVal"]);
+                }
+                else
+                {
+                    requiredN = (int)Math.Ceiling((double)encoderSettings["MaxVal"] - (double)encoderSettings["MinVal"]); ;
+                }
 
-                    int requiredN = (int)((int)encoderSettings["W"] + (double)encoderSettings["MaxVal"] - (double)encoderSettings["MinVal"]);
-                    if ((int)encoderSettings["N"] < requiredN)
-                    {
-                        Console.WriteLine(
-                            $"The value of N is less than required {requiredN} for resolution of 1." +
-                            $"This might cause some output SDRs to overlap."
-                            );
+                
+                if ((int)encoderSettings["N"] < requiredN)
+                {
+                    Console.WriteLine(
+                        $"The value of N is less than required {requiredN} for resolution of 1." +
+                        $"This might cause some output SDRs to overlap."
+                        );
 
-                        Console.WriteLine("Are you sure you want to proceed with the entered value of N or " +
-                            "do you want to use recommended N ? " +
-                            "\n\nEnter [yes] if you would like to update N to minimum required. [no] if you don't.\n");
+                    Console.WriteLine("Are you sure you want to proceed with the entered value of N or " +
+                        "do you want to use recommended N ? " +
+                        "\n\nEnter [yes] if you would like to update N to minimum required. [no] if you don't.\n");
                         
-                        // Getting input from console and updating N if required
-                        if (GetInputFromConsole())
-                        {
-                            encoderSettings["N"] = requiredN;
-                        }
-               
+                    // Getting input from console and updating N if required
+                    if (GetInputFromConsole())
+                    {
+                        encoderSettings["N"] = requiredN;
                     }
                 }
             }
@@ -132,19 +137,19 @@ namespace ScalarEncoderImproved
         }
 
         /// <summary>
-        /// Function to set encoderSettings parameter for ScalarEncoder
+        /// Function to return encoderSettings parameter for ScalarEncoder
         /// </summary>
-        /// <returns></returns>
+        /// <returns> Dictionary: encoderSettings</returns>
         public static Dictionary<string, object> GetDefaultEncoderSettings()
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            //encoderSettings.Add("N", 5);
+            encoderSettings.Add("N", 6);
             encoderSettings.Add("W", 3);
-            encoderSettings.Add("MinVal", (double)0);
-            encoderSettings.Add("MaxVal", (double)9);
-            encoderSettings.Add("Radius", (double)6);
+            encoderSettings.Add("MinVal", (double)1);
+            encoderSettings.Add("MaxVal", (double)8);
+            //encoderSettings.Add("Radius", (double)6);
             //encoderSettings.Add("Resolution", (double)2.0);
-            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("Periodic", (bool)true);
             encoderSettings.Add("ClipInput", (bool)true);
             
             // returning the checked encoder settings
