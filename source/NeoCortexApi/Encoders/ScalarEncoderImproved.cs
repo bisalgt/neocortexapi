@@ -195,50 +195,6 @@ namespace NeoCortexApi.Encoders
                     );
                 }
 
-                if (!Periodic)
-                {
-                    int requiredN = (int)(w + maxVal - minVal);
-                    if (n < requiredN)
-                    {
-                        Console.WriteLine(
-                            $"The value of N is less than required {requiredN} for resolution of 1." +
-                            $"This might cause some output SDRs to overlap."
-                            );
-
-                        Console.WriteLine("Are you sure you want to proceed with the entered value of N or " +
-                            "do you want to use recommended N ? " +
-                            "\n\nEnter [yes] if you would like to update N to minimum required. [no] if you don't.");
-                        ///
-                        ///
-                        ///Adding while loop to take a valid input from the user console.
-                        ///This makes sure that for a given configuration, there would be different encodings.
-                        ///yes or y || no or n are only valid input
-                        ///
-                        bool checker = true;
-                        while(checker)
-                        {
-                            string tempN = Console.ReadLine().ToLower();
-                            if (tempN == "no" || tempN == "n")
-                            {
-                                Console.WriteLine("Noted : NO!\nKeeping N as it is.");
-                                checker = false;
-                            }
-                            else if (tempN == "yes" || tempN == "y")
-                            {
-                                Console.WriteLine("Noted: YES!\nUpdating N to appropriate value.");
-                                N = requiredN;
-                                checker = false;
-                            }
-                            else
-                            {
-                                Console.WriteLine("Enter either yes or no!");
-                            }
-                        }
-                                               
-                        
-                    }
-                }
-
                 
                 if (radius != 0 || resolution != 0)
                 {

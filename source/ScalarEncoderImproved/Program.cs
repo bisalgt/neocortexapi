@@ -9,24 +9,150 @@ namespace ScalarEncoderImproved
 {
     class Program
     {
-
-        public static Dictionary<string, object> GetDefaultEncoderSettings()
+        /// <summary>
+        /// Function to take valid input from the console.
+        /// yes || y or no || n are only valid inputs from user.
+        /// This check is not case sensitive.
+        /// </summary>
+        /// <returns> Boolean</returns>
+        public static Boolean GetInputFromConsole()
         {
-            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("N", 11);
-            encoderSettings.Add("W", 3);
-            encoderSettings.Add("MinVal", (double)0);
-            encoderSettings.Add("MaxVal", (double)9);
-            //encoderSettings.Add("Radius", (double)6);
-            //encoderSettings.Add("Resolution", (double)0.5);
-            encoderSettings.Add("Periodic", (bool)false);
-            encoderSettings.Add("ClipInput", (bool)true);
+            bool checker = true; // boolean to take valid input from console
+            bool updater = false; // boolean to send update signal if true
+            while (checker)
+            {
+                Console.Write("Update the Value ? : ");
+                string tempN = Console.ReadLine().ToLower();
+                if (tempN == "no" || tempN == "n")
+                {
+                    Console.WriteLine("Noted : NO!\nKeeping value as it is.\n");
+                    checker = false;
+                }
+                else if (tempN == "yes" || tempN == "y")
+                {
+                    Console.WriteLine("Noted: YES!\nUpdating to appropriate value.\n");
+                    updater = true;
+                    checker = false;
+                }
+                else
+                {
+                    Console.WriteLine("Enter either yes or no!");
+                }
+            }
+            return updater;
+        }
+
+        /// <summary>
+        /// Function to check a given encoder settings. 
+        /// If the value of N is less than required, encoderSetting can be updated
+        /// according to the choice of the user. EncoderSettings updates value of N for a resolution of 1 if user choose yes.
+        /// If the user choose "no" then encoderSettings will be left untouched.
+        /// This makes sure that user can get distinct encoding for a Resolution of 1.
+        /// </summary>
+        /// <param name="encoderSettings"></param>
+        /// <returns></returns>
+        public static Dictionary<string, object> CheckEncoderSettings(Dictionary<string, object> encoderSettings)
+        {
+            // if condition checking if N is provided
+            if ((Int32)encoderSettings.GetValueOrDefault("N", 0) != 0)
+            {
+                if (!(Boolean)(encoderSettings["Periodic"]))
+                {
+
+                    int requiredN = (int)((int)encoderSettings["W"] + (double)encoderSettings["MaxVal"] - (double)encoderSettings["MinVal"]);
+                    if ((int)encoderSettings["N"] < requiredN)
+                    {
+                        Console.WriteLine(
+                            $"The value of N is less than required {requiredN} for resolution of 1." +
+                            $"This might cause some output SDRs to overlap."
+                            );
+
+                        Console.WriteLine("Are you sure you want to proceed with the entered value of N or " +
+                            "do you want to use recommended N ? " +
+                            "\n\nEnter [yes] if you would like to update N to minimum required. [no] if you don't.\n");
+                        
+                        // Getting input from console and updating N if required
+                        if (GetInputFromConsole())
+                        {
+                            encoderSettings["N"] = requiredN;
+                        }
+               
+                    }
+                }
+            }
+            // if Resolution is provided
+            else if ((double)encoderSettings.GetValueOrDefault("Resolution", 0.0) != 0.0) {
+
+                if((double)encoderSettings["Resolution"] > 1.0)
+                {
+                    Console.WriteLine(
+                        "The current value of Resolution will encode two values in similar encoding" +
+                        ", provided that two value are separated by less than current value of Resolution " +
+                        $"i.e. {(double)encoderSettings["Resolution"]}.\n"
+                        );
+                    Console.WriteLine("Are you sure you want to proceed with the entered value of Resolution or " +
+                            "do you want to use recommended Resolution - 1 ? " +
+                            "\n\nEnter [yes] if you would like to update Resolution. [no] if you don't.\n");
+
+
+                    // Getting input from console and updating N if required
+                    if (GetInputFromConsole())
+                    {
+                        encoderSettings["Resolution"] = 1.0;
+                    }
+                }
+            }
+
+            // if Radius is provided
+            else if ((double)encoderSettings.GetValueOrDefault("Radius", 0.0) != 0.0)
+            {
+                double requiredRadius = (int)encoderSettings["W"];
+                double Resolution = (double)encoderSettings["Radius"] / (int)encoderSettings["W"];
+
+                if (Resolution > 1.0)
+                {
+                    Console.WriteLine(
+                        "The current value of Radius will encode two values in similar encoding" +
+                        " if two value are separated by less than  " +
+                        $"{Resolution}.\n"
+                        );
+                    Console.WriteLine("Are you sure you want to proceed with the entered value of Radius or " +
+                            "do you want to update Radius for a  Resolution of 1 ? " +
+                            "\n\nEnter [yes] if you would like to update Radius. [no] if you don't.\n");
+
+                    // Getting input from console and updating N if required
+                    if (GetInputFromConsole())
+                    {
+                        encoderSettings["Radius"] = requiredRadius;
+                    }
+                }
+            }
+
             return encoderSettings;
         }
 
         /// <summary>
-        /// This is the place to experiment with scalar encoder
-        ///
+        /// Function to set encoderSettings parameter for ScalarEncoder
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<string, object> GetDefaultEncoderSettings()
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            //encoderSettings.Add("N", 5);
+            encoderSettings.Add("W", 3);
+            encoderSettings.Add("MinVal", (double)0);
+            encoderSettings.Add("MaxVal", (double)9);
+            encoderSettings.Add("Radius", (double)6);
+            //encoderSettings.Add("Resolution", (double)2.0);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            
+            // returning the checked encoder settings
+            return CheckEncoderSettings(encoderSettings);
+        }
+
+        /// <summary>
+        /// Main Function to experiment with Scalar Encoder
         /// </summary>
         /// <param name="args"></param>
         static void Main(string[] args)
@@ -35,8 +161,8 @@ namespace ScalarEncoderImproved
             //{
             //    Console.WriteLine(args)
             //}
-            Debug.WriteLine("Inside the Main of ImproveScalarEncoder Namespace");
-            Console.WriteLine("Inside the Main of ImproveScalarEncoder Namespace");
+            Debug.WriteLine("Inside the Main of ImproveScalarEncoder Namespace.\n");
+            Console.WriteLine("Inside the Main of ImproveScalarEncoder Namespace.\n");
 
             Dictionary<string, object> encoderSettings = GetDefaultEncoderSettings();
 
@@ -84,7 +210,7 @@ namespace ScalarEncoderImproved
             try
             {
                 NeoCortexApi.Encoders.ScalarEncoderImproved encoderObject = new NeoCortexApi.Encoders.ScalarEncoderImproved(encoderSettings);
-                CheckDifferentConfiguration(encoderObject);
+                EncodeForParticularSetting(encoderObject);
 
             }
             catch (IndexOutOfRangeException ex)
@@ -100,7 +226,7 @@ namespace ScalarEncoderImproved
         /// function to produce output for a certain configuration of encoder settings
         /// </summary>
         /// <param name="encObject"> ScalarEncoderImproved Object</param>
-        public static void CheckDifferentConfiguration(NeoCortexApi.Encoders.ScalarEncoderImproved encObject)
+        public static void EncodeForParticularSetting(NeoCortexApi.Encoders.ScalarEncoderImproved encObject)
         {
             int[] encodedData;
             for (double i = encObject.MinVal; i < encObject.MaxVal + 1; i += 1)
