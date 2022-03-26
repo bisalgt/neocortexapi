@@ -188,6 +188,7 @@ namespace NeoCortexApi.Encoders
             if (n != 0)
             {
 
+
                 if (n <= w)
                 {
                     throw new ArgumentException(
@@ -244,6 +245,24 @@ namespace NeoCortexApi.Encoders
                         Range = RangeInternal + Resolution;
                     }
                 }
+
+                // checking if value of N is minimum required
+                int requiredN;
+                if (!Periodic)
+                {
+                    requiredN = (int)Math.Ceiling(w + maxVal - minVal);
+                }
+                else
+                {
+                    requiredN = (int)Math.Ceiling(maxVal - minVal); ;
+                }
+
+                if (N < requiredN)
+                {
+                    throw new ArgumentException(
+                        "The value of N is too low. This will result in overlapping of input bits. Two values separated by 1 might have similar encodings!");
+                }
+
             }
             else
             {
@@ -255,11 +274,29 @@ namespace NeoCortexApi.Encoders
                             "Only one of the Radius or Resolution should be specified for a ScalarEncoder!"
                             );
                     }
+
+
                     Resolution = Radius / w;
+
+                    if(Resolution > 1)
+                    {
+                        throw new ArgumentException(
+                            $"The value of Radius is too high. Values that are less than {Resolution} apart will have similar encodings! Two values separated by 1 might have similar encodings!  "
+                            );
+                    }
                 }
                 else if (resolution != 0)
                 {
+                    if (resolution > 1)
+                    {
+                        throw new ArgumentException(
+                            $"The value of Resolution is too high. Values that are less than {resolution} apart will have similar encodings! Two values separated by 1 might have similar encodings!  "
+                            );
+                    }
+
                     Radius = Resolution * w;
+
+                    
                 }
                 else
                 {
@@ -280,6 +317,9 @@ namespace NeoCortexApi.Encoders
 
                 // Math.ceiling makes sure there are required number of Total bits
                 N = (int)Math.Ceiling(nFloat);
+
+                
+
             }
         }
 
