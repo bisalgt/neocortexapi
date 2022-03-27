@@ -275,7 +275,7 @@ namespace NeoCortexApi.Encoders
                             );
                     }
 
-
+                    // Checking for value of Resolution from the given Radius that could result in similar encodings
                     Resolution = Radius / w;
 
                     if(Resolution > 1)
@@ -287,6 +287,7 @@ namespace NeoCortexApi.Encoders
                 }
                 else if (resolution != 0)
                 {
+                    // Checking for value of Resolution that could result in similar encodings
                     if (resolution > 1)
                     {
                         throw new ArgumentException(
