@@ -39,28 +39,28 @@ namespace UnitTestsProject.EncoderTests
 
 
         /// <summary>
-        /// Function to update encoderSettings key with respect value
+        /// Function to update encoderSettings key with respect to given value
         /// </summary>
         /// <param name="key">Key of encoderSettings to update</param>
         /// <param name="value">Value for encoderSettings key to update</param>
         /// <param name="encoderSettings">encoderSettings dictionary object</param>
         /// <returns>Updated EncoderSetting Dictionary</returns>
-        public static Dictionary<string, object> UpdateEncoderSetting(string key, int value, Dictionary<string, object> encoderSettings)
+        public static Dictionary<string, object> UpdateEncoderSetting(string key, double value, Dictionary<string, object> encoderSettings)
         {
             if (key.ToLower() == "n")
             {
                 encoderSettings.Remove("N");
-                encoderSettings.Add("N", value);
+                encoderSettings.Add("N", (int)value);
             }
             else if (key.ToLower() == "resolution")
             {
                 encoderSettings.Remove("Resolution");
-                encoderSettings.Add("Resolution", (double)value);
+                encoderSettings.Add("Resolution", value);
             }
             else if (key.ToLower() == "radius")
             {
                 encoderSettings.Remove("Radius");
-                encoderSettings.Add("Radius", (double)value);
+                encoderSettings.Add("Radius", value);
             }
 
             return encoderSettings;
@@ -68,20 +68,63 @@ namespace UnitTestsProject.EncoderTests
 
 
         /// <summary>
-        /// Test method to check if encoding produces a distinct output.
-        /// Encoded integer array are added to an Array.
-        /// Assertion is done with the length of distinct element of Array to the length of Array
+        /// Function to check if a List<int[]> has unique integer array elements
+        /// returns true if the List of integer array is unique
+        /// </summary>
+        /// <param name="resultArray"></param>
+        /// <returns></returns>
+        public static Boolean CheckDistinctArrayElement(List<int []> resultArray)
+        {
+            bool isDistinctElement = true;
+
+            for (int i = 0; i < resultArray.Count; i++) {
+                for (int j = 0; j < resultArray.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        
+                        int match = 0;
+                        for (int k = 0; k < resultArray[0].Length; k++)
+                        {
+                            if (resultArray[i][k] == resultArray[j][k])
+                            {
+                                match++;
+                            }
+                        }
+                        if(match == resultArray[0].Length)
+                        {
+                            isDistinctElement = false;
+                        }
+                    }
+                }
+
+            }
+            return isDistinctElement;
+
+        }
+
+
+        /// <summary>
+        /// Test method to check if encoding produces exception for low value of Total Bits (N).
+        /// Because the value of N is low, encoding could produce similar SDRs and so Argument Exception is thrown by
+        /// the improved scalar encoder. 
         /// </summary>
         [TestMethod]
         [TestCategory("ScalarEncoderImproved")]
-        public void TestDistinctEncoding()
+        [DataRow(5)]
+        [DataRow(6)]
+        [DataRow(7)]
+        [DataRow(8)]
+        [DataRow(9)]
+        [DataRow(10)]
+        public void TestEncodingWithLowTotalBits(int inputN)
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
             encoderSettings.Add("W", 5);
-            encoderSettings.Add("N", (int)0);
+            encoderSettings.Add("N", (int)inputN);
             encoderSettings.Add("MinVal", (double)22);
             encoderSettings.Add("MaxVal", (double)39);
-            encoderSettings.Add("Radius", (double)5);
+            encoderSettings.Add("Radius", (double)0);
             encoderSettings.Add("Resolution", (double)0);
             encoderSettings.Add("Periodic", (bool)false);
             encoderSettings.Add("ClipInput", (bool)true);
@@ -93,18 +136,276 @@ namespace UnitTestsProject.EncoderTests
 
             for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"]; i++)
             {
-                int[] result = ReturnSDRsForEncoderSetting(i, encoderSettings);
-                
-                resultArray.Add(result);
+                // Arugment exception would be thrown in case the value of N is such that
+                // the ScalarEncoderImproved would result in no distinct encoding.
+                Assert.ThrowsException<System.ArgumentException>(() => ReturnSDRsForEncoderSetting(i, encoderSettings));              
 
             }
-            Console.WriteLine(resultArray.Distinct().ToList().Count);
-            Console.WriteLine(resultArray.Count);
-
-            Assert.IsTrue(resultArray.Distinct().ToList().Count == resultArray.Count);
         }
 
 
+
+        /// <summary>
+        /// Test method to check if encoding produces a distinct output.
+        /// Encoded integer array are added to an Array.
+        /// Assertion is done with the length of distinct element of Array to the length of Original Array.
+        /// Assertion is True for distinct encoding.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("ScalarEncoderImproved")]
+        [DataRow(22)]
+        [DataRow(23)]
+        [DataRow(24)]
+        [DataRow(25)]
+        [DataRow(26)]
+        public void TestDistinctEncodingWithRequiredTotalBits(int inputN)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 5);
+            encoderSettings.Add("N", (int)inputN);
+            encoderSettings.Add("MinVal", (double)22);
+            encoderSettings.Add("MaxVal", (double)39);
+            encoderSettings.Add("Radius", (double)0);
+            encoderSettings.Add("Resolution", (double)0);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+
+            List<int[]> resultArray = new List<int[]> { };
+
+            for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+            {
+                // The value of N is more than required so Distinct encoding is done by the ScalarEncoderImproved
+                int[] result =  ReturnSDRsForEncoderSetting(i, encoderSettings);
+                resultArray.Add(result);
+            }
+            // Assertion is True is distinct encoding by ScalarEncoderImproved
+            Assert.IsTrue(CheckDistinctArrayElement(resultArray));
+        }
+
+
+
+        /// <summary>
+        /// Test method to check Old ScalarEncoder produces non distinct SDRs. 
+        /// For a given specification, encoding of some input values are similar.
+        /// So Assertion with False should pass
+        /// </summary>
+        [TestMethod]
+        [TestCategory("ScalarEncoderImproved")]
+        [DataRow(35)]
+        [DataRow(36)]
+        [DataRow(37)]
+        [DataRow(38)]
+        [DataRow(39)]
+        [DataRow(40)]
+        public void TestDistinctEncodingWithLowTotalBitsForUnimprovedScalarEncoder(int inputN)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 3);
+            encoderSettings.Add("N", (int)inputN);
+            encoderSettings.Add("MinVal", (double)10);
+            encoderSettings.Add("MaxVal", (double)50);
+            encoderSettings.Add("Radius", (double)0);
+            encoderSettings.Add("Resolution", (double)0);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+
+            List<int[]> resultArray = new List<int[]> { };
+
+            for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+            {
+                ScalarEncoder encoderObj = new ScalarEncoder(encoderSettings);
+
+                int[] result = encoderObj.Encode(i);
+                Debug.WriteLine(NeoCortexApi.Helpers.StringifyVector(result));
+                resultArray.Add(result);
+
+
+            }
+            // Old ScalarEncoder encodes two different inputs with similar encoding. 
+            // So the Assertion should be False as the Array Elements are not distinct.
+            Assert.IsFalse(CheckDistinctArrayElement(resultArray));
+        }
+
+
+
+        /// <summary>
+        /// Test method to check if encoding produces Exception for high resolution.
+        /// Because the value of Resolution is high, encoding could produce similar SDRs and so Argument Exception is thrown by
+        /// the improved scalar encoder. 
+        /// </summary>
+        [TestMethod]
+        [TestCategory("ScalarEncoderImproved")]
+        [DataRow(2)]
+        [DataRow(3)]
+        [DataRow(4)]
+        [DataRow(8)]
+        [DataRow(9)]
+        [DataRow(10)]
+        public void TestEncodingWithHighResolution(int inputResolution)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 5);
+            encoderSettings.Add("N", (int)0);
+            encoderSettings.Add("MinVal", (double)22);
+            encoderSettings.Add("MaxVal", (double)39);
+            encoderSettings.Add("Radius", (double)0);
+            encoderSettings.Add("Resolution", (double)inputResolution);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+
+
+            for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+            {
+                // Arugment exception would be thrown in case the value of Resolution is such that
+                // the ScalarEncoderImproved would result in no distinct encoding.
+                Assert.ThrowsException<System.ArgumentException>(() => ReturnSDRsForEncoderSetting(i, encoderSettings));
+
+            }
+        }
+
+
+
+        /// <summary>
+        /// Test method to check if encoding produces a distinct output.
+        /// Encoded integer array are added to an Array.
+        /// Assertion is done with the length of distinct element of Array to the length of Original Array.
+        /// Because the value of Resolution is just enough, Distinct encoding is done by
+        /// the improved scalar encoder. 
+        /// </summary>
+        [TestMethod]
+        [TestCategory("ScalarEncoderImproved")]
+        [DataRow(0.1)]
+        [DataRow(0.3)]
+        [DataRow(0.5)]
+        [DataRow(0.7)]
+        [DataRow(0.9)]
+        [DataRow(1.0)]
+        public void TestDistinctEncodingWithRequiredResolution(double inputResolution )
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 5);
+            encoderSettings.Add("N", (int)0);
+            encoderSettings.Add("MinVal", (double)22);
+            encoderSettings.Add("MaxVal", (double)39);
+            encoderSettings.Add("Radius", (double)0);
+            encoderSettings.Add("Resolution", (double)inputResolution);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+            List<int[]> resultArray = new List<int[]> { };
+
+            for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+            {
+                resultArray.Add(ReturnSDRsForEncoderSetting(i, encoderSettings));
+
+
+            }
+            // ScalarEncoder Improved encodes two different inputs with distinct encoding if the encoderSetting is appropriate. 
+            // Assertion should be True as the Array Elements are distinct.
+            Assert.IsTrue(CheckDistinctArrayElement(resultArray));
+        }
+
+
+        /// <summary>
+        /// Test method to check if encoding produces Exception for high Radius.
+        /// Because the value of Radius is high - more than number of active bits, , encoding could produce similar SDRs and so Argument Exception is thrown by
+        /// the improved scalar encoder. 
+        /// </summary>
+        [TestMethod]
+        [TestCategory("ScalarEncoderImproved")]
+        [DataRow(6)]
+        [DataRow(7)]
+        [DataRow(8)]
+        [DataRow(9)]
+        [DataRow(10)]
+        public void TestEncodingWithHighRadius(int inputRadius)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 5);
+            encoderSettings.Add("N", (int)0);
+            encoderSettings.Add("MinVal", (double)22);
+            encoderSettings.Add("MaxVal", (double)39);
+            encoderSettings.Add("Radius", (double)inputRadius);
+            encoderSettings.Add("Resolution", (double)0);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+
+
+            for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+            {
+                // Arugment exception would be thrown in case the value of Radius is such that
+                // the ScalarEncoderImproved would result in no distinct encoding.
+                Assert.ThrowsException<System.ArgumentException>(() => ReturnSDRsForEncoderSetting(i, encoderSettings));
+
+            }
+        }
+
+
+
+        /// <summary>
+        /// Test method to check if distinct encoding is produced by required Radius.
+        /// Because the value of Radius is just appropriate, distinct encoding is produce by ScalarEncoderImproved.
+        /// Distinct assertion check is done after adding all the output to a List of integer array.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("ScalarEncoderImproved")]
+        [DataRow(1)]
+        [DataRow(2)]
+        [DataRow(3)]
+        [DataRow(4)]
+        [DataRow(5)]
+        public void TestDistinctEncodingWithRequiredRadius(int inputRadius)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 5);
+            encoderSettings.Add("N", (int)0);
+            encoderSettings.Add("MinVal", (double)22);
+            encoderSettings.Add("MaxVal", (double)39);
+            encoderSettings.Add("Radius", (double)inputRadius);
+            encoderSettings.Add("Resolution", (double)0);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+
+
+            List<int[]> resultArray = new List<int[]> { };
+
+            for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+            {
+                resultArray.Add(ReturnSDRsForEncoderSetting(i, encoderSettings));
+
+
+            }
+            // ScalarEncoder Improved encodes two different inputs with distinct encoding if the encoderSetting is appropriate. 
+            // Assertion should be True as the Array Elements are distinct.
+            Assert.IsTrue(CheckDistinctArrayElement(resultArray));
+        }
+
+
+
+        /// <summary>
+        /// Test Case to check encoding with different value of N.
+        /// If the value of N is less than required exception is thrown.
+        /// If the value is more than or equal to required, encoding is done and
+        /// assertion is checked with the return type of encoder which is integer array.
+        /// </summary>
+        /// <param name="input"></param>
         [TestMethod]
         [TestCategory("ScalarEncoderImproved")]
         [DataRow(22)]
@@ -112,7 +413,7 @@ namespace UnitTestsProject.EncoderTests
         [DataRow(29)]
         [DataRow(32)]
         [DataRow(39)]
-        public void TestCheckDifferentValueOfTotalBitsForNonPeriodic(int input)
+        public void TestCheckForDifferentValueOfTotalBitsForNonPeriodic(int input)
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
             encoderSettings.Add("W", 5);
@@ -138,6 +439,8 @@ namespace UnitTestsProject.EncoderTests
                 }
                 else
                 {
+                    // This will run if the value of TotalBits is minimum required or more. 
+                    // this will be true if the data returned after encoding is integer array type
                     Assert.IsInstanceOfType(ReturnSDRsForEncoderSetting(input, encoderSettings), typeof(int[]));
                 }
             }
@@ -145,7 +448,7 @@ namespace UnitTestsProject.EncoderTests
         }
 
         /// <summary>
-        /// Test if encoding works properly for a periodic input 
+        /// Test case to check if encoding works properly for a periodic input 
         /// with different value of N(Total Bits).
         /// </summary>
         /// <param name="input"></param>
@@ -156,7 +459,7 @@ namespace UnitTestsProject.EncoderTests
         [DataRow(29)]
         [DataRow(32)]
         [DataRow(39)]
-        public void TestCheckDifferentValueOfTotalBitsForPeriodic(int input)
+        public void TestCheckForDifferentValueOfTotalBitsForPeriodic(int input)
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
             encoderSettings.Add("W", 5);
@@ -181,10 +484,13 @@ namespace UnitTestsProject.EncoderTests
                 }
                 else if (input < (double)encoderSettings["MaxVal"] & n >= ((double)encoderSettings["MaxVal"] - (double)encoderSettings["MinVal"]))
                 {
+                    // this will be true if the data returned after encoding is integer array type
                     Assert.IsInstanceOfType(ReturnSDRsForEncoderSetting(input, encoderSettings), typeof(int []));
                 }
                 else if (input >= (double)encoderSettings["MaxVal"])
                 {
+                    // For a Periodic input, argument exception is thrown as value of input to encode should be
+                    // strictly less than the MaxVal to encode.
                     Assert.ThrowsException<System.ArgumentException>(() => ReturnSDRsForEncoderSetting(input, encoderSettings));
                 }
             }
@@ -192,37 +498,9 @@ namespace UnitTestsProject.EncoderTests
         }
 
 
-        /// <summary>
-        /// Tests to show Low number of Total Bits (N) will result in ArgumentException
-        /// </summary>
-        /// <param name="input">Input to check</param>
-        [TestMethod]
-        [TestCategory("ScalarEncoderImproved")]
-        [DataRow(11)]
-        [DataRow(13)]
-        [DataRow(15)]
-        [DataRow(18)]
-        [DataRow(20)]
-        public void TestArgumentExceptionWithLowTotalBits(int input)
-        {
-            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("W", 3);
-            encoderSettings.Add("N", (int)10);
-            encoderSettings.Add("MinVal", (double)11);
-            encoderSettings.Add("MaxVal", (double)20);
-            encoderSettings.Add("Radius", (double)0);
-            encoderSettings.Add("Resolution", (double)0);
-            encoderSettings.Add("Periodic", (bool)false);
-            encoderSettings.Add("ClipInput", (bool)true);
-            encoderSettings.Add("Name", "TestScalarEncoderImproved");
-            encoderSettings.Add("IsRealCortexModel", false);
-
-
-            Assert.ThrowsException<System.ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
-        }
 
         /// <summary>
-        /// Tests to show enough Total Bits results in Encoding.
+        /// Tests to show enough Total Bits results in proper encoding.
         /// Calls ScalarEncoderImproved.Encode Method
         /// </summary>
         /// <param name="input"></param>
@@ -262,152 +540,6 @@ namespace UnitTestsProject.EncoderTests
         }
 
 
-        /// <summary>
-        /// Tests to check if High value of Resolution results in Argument Exception.
-        /// High value of Resolution will generate exception is the Resolution is greater than 1.
-        /// Resolution 1 encodes two inputs which are 1 apart with different SDR representations.
-        /// </summary>
-        /// <param name="input"></param>
-        [TestMethod]
-        [TestCategory("ScalarEncoderImproved")]
-        [DataRow(0)]
-        [DataRow(1)]
-        [DataRow(2)]
-        [DataRow(3)]
-        [DataRow(4)]
-        public void TestArgumentExceptionWithHighResolution(int input)
-        {
-            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("W", 3);
-            encoderSettings.Add("N", (int)0);
-            encoderSettings.Add("MinVal", (double)0);
-            encoderSettings.Add("MaxVal", (double)9);
-            encoderSettings.Add("Radius", (double)0);
-            encoderSettings.Add("Resolution", (double)5);
-            encoderSettings.Add("Periodic", (bool)false);
-            encoderSettings.Add("ClipInput", (bool)true);
-            encoderSettings.Add("Name", "TestScalarEncoderImproved");
-            encoderSettings.Add("IsRealCortexModel", false);
-
-
-            Assert.ThrowsException<System.ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
-        }
-
-
-        /// <summary>
-        /// Test Case to check if Resolution 1 results in Encoding without exception
-        /// </summary>
-        /// <param name="input"></param>
-        /// <param name="expectedResult"></param>
-        [TestMethod]
-        [TestCategory("ScalarEncoderImproved")]
-        [DataRow(22, new int[] { 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
-        [DataRow(25, new int[] { 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
-        [DataRow(29, new int[] { 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
-        [DataRow(34, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 })]
-        [DataRow(39, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 })]
-        public void TestNoArgumentExceptionWithResolutionForUniqueEncoding(int input, int[] expectedResult)
-        {
-            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("W", 5);
-            encoderSettings.Add("N", (int)0);
-            encoderSettings.Add("MinVal", (double)22);
-            encoderSettings.Add("MaxVal", (double)39);
-            encoderSettings.Add("Radius", (double)0);
-            encoderSettings.Add("Resolution", (double)1);
-            encoderSettings.Add("Periodic", (bool)false);
-            encoderSettings.Add("ClipInput", (bool)true);
-            encoderSettings.Add("Name", "TestScalarEncoderImproved");
-            encoderSettings.Add("IsRealCortexModel", false);
-
-
-            ScalarEncoderImproved encoder = new ScalarEncoderImproved(encoderSettings);
-
-            var result = encoder.Encode(input);
-
-            Debug.WriteLine(input);
-            Debug.WriteLine("Current Result : ");
-            Debug.WriteLine(NeoCortexApi.Helpers.StringifyVector(result));
-            Debug.Write("ExpectedResult : ");
-            Debug.WriteLine(NeoCortexApi.Helpers.StringifyVector(expectedResult));
-
-            Assert.IsTrue(expectedResult.SequenceEqual(result));
-        }
-
-
-        /// <summary>
-        /// High value of Radius results in similar encoding of two different inputs.
-        /// Checking to see if too high Radius resulted in Argument Exception.
-        /// Argument exception is thrown during initializing the Scalar Encoder.
-        /// </summary>
-        /// <param name="input"></param>
-        [TestMethod]
-        [TestCategory("ScalarEncoderImproved")]
-        [DataRow(22)]
-        [DataRow(25)]
-        [DataRow(29)]
-        [DataRow(34)]
-        [DataRow(39)]
-        public void TestArgumentExceptionWithHighRadius(int input)
-        {
-            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("W", 5);
-            encoderSettings.Add("N", (int)0);
-            encoderSettings.Add("MinVal", (double)22);
-            encoderSettings.Add("MaxVal", (double)39);
-            encoderSettings.Add("Radius", (double)10);
-            encoderSettings.Add("Resolution", (double)0);
-            encoderSettings.Add("Periodic", (bool)false);
-            encoderSettings.Add("ClipInput", (bool)true);
-            encoderSettings.Add("Name", "TestScalarEncoderImproved");
-            encoderSettings.Add("IsRealCortexModel", false);
-
-
-            Assert.ThrowsException<System.ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
-        }
-
-
-
-        /// <summary>
-        /// No Argument Exception should be thrown when the value of Radius is just required,
-        /// so that distinct encoding occurs
-        /// </summary>
-        /// <param name="input"></param>
-        /// <param name="expectedResult"></param>
-        [TestMethod]
-        [TestCategory("ScalarEncoderImproved")]
-        [DataRow(22, new int[] { 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
-        [DataRow(25, new int[] { 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
-        [DataRow(29, new int[] { 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
-        [DataRow(34, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 })]
-        [DataRow(39, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 })]
-        public void TestNoArumentExceptionWithRadiusForUniqueEncoding(int input, int[] expectedResult)
-        {
-            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("W", 5);
-            encoderSettings.Add("N", (int)0);
-            encoderSettings.Add("MinVal", (double)22);
-            encoderSettings.Add("MaxVal", (double)39);
-            encoderSettings.Add("Radius", (double)5);
-            encoderSettings.Add("Resolution", (double)0);
-            encoderSettings.Add("Periodic", (bool)false);
-            encoderSettings.Add("ClipInput", (bool)true);
-            encoderSettings.Add("Name", "TestScalarEncoderImproved");
-            encoderSettings.Add("IsRealCortexModel", false);
-
-
-            ScalarEncoderImproved encoder = new ScalarEncoderImproved(encoderSettings);
-
-            var result = encoder.Encode(input);
-
-            Debug.WriteLine(input);
-            Debug.WriteLine("Current Result : ");
-            Debug.WriteLine(NeoCortexApi.Helpers.StringifyVector(result));
-            Debug.Write("ExpectedResult : ");
-            Debug.WriteLine(NeoCortexApi.Helpers.StringifyVector(expectedResult));
-
-            Assert.IsTrue(expectedResult.SequenceEqual(result));
-        }
     }
 }
 
