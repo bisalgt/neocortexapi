@@ -104,6 +104,172 @@ namespace UnitTestsProject.EncoderTests
         }
 
 
+        [TestMethod]
+        [TestCategory("ScalarEncoderImprveddd")]
+        [DataRow(5)]
+        [DataRow(6)]
+        [DataRow(7)]
+        [DataRow(8)]
+        [DataRow(9)]
+        [DataRow(10)]
+        [DataRow(22)]
+        [DataRow(23)]
+        [DataRow(24)]
+        [DataRow(25)]
+        [DataRow(26)]
+        public void TestEncodingByUnimprovedEncoderProvidedTotalBits(int inputN)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 5);
+            encoderSettings.Add("N", (int)inputN);
+            encoderSettings.Add("MinVal", (double)22);
+            encoderSettings.Add("MaxVal", (double)39);
+            encoderSettings.Add("Radius", (double)0);
+            encoderSettings.Add("Resolution", (double)0);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+            // List to append the encoded data from the scalar encoder
+            List<int[]> encodedList = new List<int[]> { };
+
+            ScalarEncoder UnImprovedEncoderObj = new ScalarEncoder(encoderSettings);
+
+            // This value refers to the total different encoding that a ScalarEncoder can encode.
+            // If the range of data that we need to encode is more than the total different encoding that our ScalarEncoder can encode then
+            // encodings are not distinct.
+            int requiredTotalBits = (int)((int)encoderSettings["W"] + (double)encoderSettings["MaxVal"] - (double)encoderSettings["MinVal"]);
+
+            if ((int)encoderSettings["N"] < requiredTotalBits) 
+            {
+                // List to append the encoded data from the scalar encoder when the value of N is too Low
+                List<int[]> encodedListForLowTotalBits = new List<int[]> { };
+
+                // Looping from  minimum-value that a encoder can encode to maximum value.
+                // Minimum Value and Maximum Value are used from encoder settings.
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int [] encoded_data = UnImprovedEncoderObj.Encode(i);
+                    // Adding the encoded data to an List for comparision
+                    encodedListForLowTotalBits.Add(encoded_data);
+                }
+
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with false as the old version of scalar encoder
+                // does not provides unique encoding.   
+                Assert.IsFalse(CheckDistinctArrayElement(encodedListForLowTotalBits));
+
+            }
+            // If the value of N is more than or equal to a required value then encoding is distinct by old scalar encoder
+            else 
+            {
+                // List to append the encoded data from the scalar encoder when the value of N is enough for distinct encoding
+                List<int[]> encodedListForEnoughTotalBits = new List<int[]> { };
+
+                // Looping from  minimum-value that a encoder can encode to maximum value.
+                // Minimum Value and Maximum Value are used from encoder settings.
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int [] encoded_data = UnImprovedEncoderObj.Encode(i);
+                    // Adding the encoded data to an List for comparision
+                    encodedListForEnoughTotalBits.Add(encoded_data);
+                }
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with true as the old version of scalar encoder
+                // provides unique encoding if the value of N is equal to or more than a threshold.
+                
+                Assert.IsTrue(CheckDistinctArrayElement(encodedListForEnoughTotalBits));
+            }
+            
+        }
+
+
+        [TestMethod]
+        [TestCategory("categori")]
+        [DataRow(5)]
+        [DataRow(6)]
+        [DataRow(7)]
+        [DataRow(8)]
+        [DataRow(9)]
+        [DataRow(10)]
+        [DataRow(22)]
+        [DataRow(23)]
+        [DataRow(24)]
+        [DataRow(25)]
+        [DataRow(26)]
+        public void TestEncodingByImprovedEncoderProvidedTotalBits(int inputN)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 5);
+            encoderSettings.Add("N", (int)inputN);
+            encoderSettings.Add("MinVal", (double)22);
+            encoderSettings.Add("MaxVal", (double)39);
+            encoderSettings.Add("Radius", (double)0);
+            encoderSettings.Add("Resolution", (double)0);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+            // List to append the encoded data from the scalar encoder
+            List<int[]> encodedList = new List<int[]> { };
+
+            ScalarEncoderImproved ImprovedEncoderObj = new ScalarEncoderImproved(encoderSettings);
+
+            // This value refers to the total different encoding that a ScalarEncoder can encode.
+            // If the range of data that we need to encode is more than the total different encoding that our ScalarEncoder can encode then
+            // encodings are not distinct.
+            int requiredTotalBits = (int)((int)encoderSettings["W"] + (double)encoderSettings["MaxVal"] - (double)encoderSettings["MinVal"]);
+
+            if ((int)encoderSettings["N"] < requiredTotalBits)
+            {
+                // List to append the encoded data from the scalar encoder when the value of N is too Low
+                List<int[]> encodedListForLowTotalBits = new List<int[]> { };
+
+                // Looping from  minimum-value that a encoder can encode to maximum value.
+                // Minimum Value and Maximum Value are used from encoder settings.
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int[] encoded_data = ImprovedEncoderObj.Encode(i);
+                    // Adding the encoded data to an List for comparision
+                    encodedListForLowTotalBits.Add(encoded_data);
+                }
+
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with false as the old version of scalar encoder
+                // does not provides unique encoding.   
+                Assert.IsFalse(CheckDistinctArrayElement(encodedListForLowTotalBits));
+
+            }
+            // If the value of N is more than or equal to a required value then encoding is distinct by old scalar encoder
+            else
+            {
+                // List to append the encoded data from the scalar encoder when the value of N is enough for distinct encoding
+                List<int[]> encodedListForEnoughTotalBits = new List<int[]> { };
+
+                // Looping from  minimum-value that a encoder can encode to maximum value.
+                // Minimum Value and Maximum Value are used from encoder settings.
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int[] encoded_data = ImprovedEncoderObj.Encode(i);
+                    // Adding the encoded data to an List for comparision
+                    encodedListForEnoughTotalBits.Add(encoded_data);
+                }
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with true as the old version of scalar encoder
+                // provides unique encoding if the value of N is equal to or more than a threshold.
+
+                Assert.IsTrue(CheckDistinctArrayElement(encodedListForEnoughTotalBits));
+            }
+
+        }
+
+
         /// <summary>
         /// Test method to check if encoding produces exception for low value of Total Bits (N).
         /// Because the value of N is low, encoding could produce similar SDRs and so Argument Exception is thrown by
