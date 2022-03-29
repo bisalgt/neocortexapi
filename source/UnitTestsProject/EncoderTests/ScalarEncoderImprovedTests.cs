@@ -102,7 +102,11 @@ namespace UnitTestsProject.EncoderTests
 
         }
 
+        #region Test Encoding for different value of Total Bits for UnImproved Encoder
 
+        // Encoding is tested for improved encoder with respect to different value of Total bits (N).
+        // Value of N which leads to non-distinct encoding is also used and non-distinct encoding is
+        // output by the old scalar encoder.
         [TestMethod]
         [TestCategory("categori1")]
         [DataRow(6)]
@@ -182,7 +186,13 @@ namespace UnitTestsProject.EncoderTests
             
         }
 
+        #endregion
 
+
+        #region Test Encoding for different value of Total Bits for Improved Encoder
+
+        // Encoding is tested for improved encoder with respect to different value of Total bits (N).
+        // Value of N which leads to non-distinct encoding is thrown as an exception
         [TestMethod]
         [TestCategory("categori2")]
         [DataRow(6)]
@@ -259,8 +269,14 @@ namespace UnitTestsProject.EncoderTests
 
         }
 
+        #endregion
 
 
+        #region Test Encoding for different value of Resolution for UnImproved Encoder
+
+        // Test function to check encoding when Resolution is set(i.e., N and Radius unset or zero).
+        // Any value of Resolution that leads to non-distinct encoding is output by the old scalar encoder.
+        // For some configuration of input space, IndexOutOfRangeException is observed for unimproved encoder.
         [TestMethod]
         [TestCategory("categori3")]
         [DataRow(0.1)]
@@ -387,8 +403,14 @@ namespace UnitTestsProject.EncoderTests
 
         }
 
+        #endregion
 
 
+        #region Test Encoding for different value of Resolution for Improved Encoder
+
+        // Test function to check encoding when Resolution is set(i.e., N and Radius are unset or zero).
+        // Any value of Resolution that leads to non-distinct encoding is thrown as an exception.
+        // Encoding can only be done by those value of Resolution that make distinct encodings.
         [TestMethod]
         [TestCategory("categori4")]
         [DataRow(0.1)]
@@ -461,9 +483,15 @@ namespace UnitTestsProject.EncoderTests
 
         }
 
+        #endregion
 
 
+        #region Test Encoding for different value of Radius for UnImproved Encoder
 
+
+        // Test function to check encoding when Radius is set(i.e., N and Resolution are unset or zero).
+        // Any value of radius that leads to non-distinct encoding is also encoded.
+        // For some input space, some value leads to IndexOutofRange exception for UnImproved Scalar Encoder.
         [TestMethod]
         [TestCategory("categori5")]
         [DataRow(0.3)]
@@ -583,8 +611,15 @@ namespace UnitTestsProject.EncoderTests
 
         }
 
+        #endregion
 
 
+        #region Test Encoding for different value of Radius for Improved Encoder
+
+
+        // Test function to check encoding when Radius is set(i.e., N and Resolution are unset or zero).
+        // Any value of radius that leads to non-distinct encoding is thrown as an exception.
+        // Encoding can only be done by those value of Radius that make distinct encodings.
         [TestMethod]
         [TestCategory("categori6")]
         [DataRow(0.3)]
@@ -657,17 +692,18 @@ namespace UnitTestsProject.EncoderTests
 
         }
 
+        #endregion
 
 
-
-
+        #region Test Mutually Exclusiveness of Parameters N, Radius and Resolution for UnImproved Encoder
 
         // Testing if N, Resolution and Radius are mutually exclusive parameters
         // Only one of 3 of them should be set at a time, remaining two should be zero.
         // Based on anyone of their value, remaining two is calculated internally by the encoder.
-        // Older version of scalar encoder encodes even when all or any one of the data are given. 
+        // Older version of scalar encoder encodes even when all or any two of these parameters are given. 
         [TestMethod]
-        [TestCategory("categori7")] // DataRow(N, Resolution, Radius)
+        [TestCategory("categori7")]
+        // DataRow(N, Resolution, Radius)
         [DataRow(18, 0.3, 0)]
         [DataRow(18, 0, 4)]
         [DataRow(0, 0.3, 4)]
@@ -797,6 +833,10 @@ namespace UnitTestsProject.EncoderTests
 
         }
 
+        #endregion
+
+
+        #region Test Mutually Exclusiveness of Parameters N, Radius and Resolution for Improved Encoder
 
         // Testing if N, Resolution and Radius are mutually exclusive parameters
         // Only one of 3 of them should be set at a time, remaining two should be zero.
@@ -881,7 +921,7 @@ namespace UnitTestsProject.EncoderTests
 
         }
 
-
+        #endregion
 
 
         /// <summary>
