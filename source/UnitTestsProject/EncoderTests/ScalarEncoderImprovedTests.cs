@@ -658,44 +658,229 @@ namespace UnitTestsProject.EncoderTests
         }
 
 
-        /// <summary>
-        /// Test method to check if encoding produces exception for low value of Total Bits (N).
-        /// Because the value of N is low, encoding could produce similar SDRs and so Argument Exception is thrown by
-        /// the improved scalar encoder. 
-        /// </summary>
+
+
+
+
+        // Testing if N, Resolution and Radius are mutually exclusive parameters
+        // Only one of 3 of them should be set at a time, remaining two should be zero.
+        // Based on anyone of their value, remaining two is calculated internally by the encoder.
+        // Older version of scalar encoder encodes even when all or any one of the data are given. 
         [TestMethod]
-        [TestCategory("ScalarEncoderImproved")]
-        [DataRow(5)]
-        [DataRow(6)]
-        [DataRow(7)]
-        [DataRow(8)]
-        [DataRow(9)]
-        [DataRow(10)]
-        public void TestEncodingWithLowTotalBits(int inputN)
+        [TestCategory("categori7")] // DataRow(N, Resolution, Radius)
+        [DataRow(18, 0.3, 0)]
+        [DataRow(18, 0, 4)]
+        [DataRow(0, 0.3, 4)]
+        [DataRow(18, 0.3, 4)]
+        [DataRow(18, 0, 0)]
+        [DataRow(0, 0.3, 0)]
+        [DataRow(0, 0, 4)]
+        public void TestingMutualExclusivenessOfParametersForUnImprovedEncoder(int inputN, double inputResolution, double inputRadius)
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
             encoderSettings.Add("W", 5);
             encoderSettings.Add("N", (int)inputN);
-            encoderSettings.Add("MinVal", (double)22);
-            encoderSettings.Add("MaxVal", (double)39);
-            encoderSettings.Add("Radius", (double)0);
-            encoderSettings.Add("Resolution", (double)0);
+            encoderSettings.Add("MinVal", (double)0);
+            encoderSettings.Add("MaxVal", (double)9);
+            encoderSettings.Add("Radius", (double)inputRadius);
+            encoderSettings.Add("Resolution", (double)inputResolution);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+            ScalarEncoder oldEncoderObj = new ScalarEncoder(encoderSettings);
+
+            if ((inputN != 0) & (inputRadius != 0))
+            {
+                // If the value of N and Radius both are given then encoding should not be happening.
+                // One value should be calculated based on another value
+                // For the older version of encoder, defective configuration also leads to encoding.
+                // One of their value is changed while encoding.
+                List<int[]> encodedList = new List<int[]> { };
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    int[] encoded_data = oldEncoderObj.Encode(i);
+
+                    // Adding the encoded data to the List
+                    encodedList.Add(encoded_data);
+                }
+
+                // This step checks if encoding is done.
+                // current version of encoder encodes data even when the configuration is not correct
+                Assert.IsTrue(CheckDistinctArrayElement(encodedList));
+            }
+
+
+            else if ((inputN != 0) & (inputResolution != 0))
+            {
+                // If the value of N and Resolution both are given then encoding should not be happening.
+                // One value should be calculated based on another value
+                // For the older version of encoder, defective configuration also leads to encoding.
+                // One of their value is changed while encoding.
+                List<int[]> encodedList = new List<int[]> { };
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    int[] encoded_data = oldEncoderObj.Encode(i);
+
+                    // Adding the encoded data to the List
+                    encodedList.Add(encoded_data);
+                }
+
+                // This step checks if encoding is done.
+                // current version of encoder encodes data even when the configuration is not correct
+                Assert.IsTrue(encodedList.Count > 0);
+            }
+
+            else if ((inputResolution != 0) & (inputRadius != 0))
+            {
+                // If the value of Resolution and Radius both are given then encoding should not be happening.
+                // One value should be calculated based on another value
+                // For the older version of encoder, defective configuration also leads to encoding.
+                // One of their value is changed while encoding.
+                List<int[]> encodedList = new List<int[]> { };
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    int[] encoded_data = oldEncoderObj.Encode(i);
+
+                    // Adding the encoded data to the List
+                    encodedList.Add(encoded_data);
+                }
+
+                // This step checks if encoding is done.
+                // current version of encoder encodes data even when the configuration is not correct
+                Assert.IsTrue(encodedList.Count > 0);
+            }
+
+            else if ((inputN != 0) & (inputRadius != 0) & (inputResolution != 0))
+            {
+                // N, Radius and Resolution should be mutually exclusive parameters.
+                // If all the values (N, Radius and Resolution) are provided to the ScalarEncoder for encoding,
+                // exception should be thrown. Older version of encoder can encodes on such values and can also leads to exception sometimes
+                List<int[]> encodedList = new List<int[]> { };
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    int[] encoded_data = oldEncoderObj.Encode(i);
+
+                    // Adding the encoded data to the List
+                    encodedList.Add(encoded_data);
+                }
+
+                // This step checks if encoding is done.
+                // current version of encoder encodes data even when the configuration is not correct
+                Assert.IsTrue(encodedList.Count > 0);
+            }
+
+            // This else block will run if N, Resolution and Radius are Mutually Exclusive
+            else
+            {
+                // If any one of N, Radius or Resolution is provided such that they are mutually exclusive then ecoding is correctly done for correct value of N, Radius or Resolution
+                List<int[]> encodedList = new List<int[]> { };
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    int[] encoded_data = oldEncoderObj.Encode(i);
+
+                    // Adding the encoded data to the List
+                    encodedList.Add(encoded_data);
+                }
+
+                // current version of encoder encodes data distinctly if the values used of generating the encoder configuration is correct
+                // If the value of parameters are not as required then encoding is not done
+                Assert.IsTrue(CheckDistinctArrayElement(encodedList));
+
+            }
+
+        }
+
+
+        // Testing if N, Resolution and Radius are mutually exclusive parameters
+        // Only one of 3 of them should be set at a time, remaining two should be zero.
+        // Based on anyone of their value, remaining two is calculated internally by the encoder.
+        // Improved version of scalar encoder makes sure that N, Radius and Resolution are mutually exclusive.
+        [TestMethod]
+        [TestCategory("categori8")]
+        // DataRow(N, Resolution, Radius)
+        [DataRow(18, 0.3, 0)]
+        [DataRow(18, 0, 4)]
+        [DataRow(0, 0.3, 4)]
+        [DataRow(18, 0.3, 4)]
+        [DataRow(18, 0, 0)]
+        [DataRow(0, 0.3, 0)]
+        [DataRow(0, 0, 4)]
+        public void TestingMutualExclusivenessOfParametersForImprovedEncoder(int inputN, double inputResolution, double inputRadius)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 5);
+            encoderSettings.Add("N", (int)inputN);
+            encoderSettings.Add("MinVal", (double)0);
+            encoderSettings.Add("MaxVal", (double)9);
+            encoderSettings.Add("Radius", (double)inputRadius);
+            encoderSettings.Add("Resolution", (double)inputResolution);
             encoderSettings.Add("Periodic", (bool)false);
             encoderSettings.Add("ClipInput", (bool)true);
             encoderSettings.Add("Name", "TestScalarEncoderImproved");
             encoderSettings.Add("IsRealCortexModel", false);
 
 
-            List<int[]> resultArray = new List<int[]> { };
-
-            for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"]; i++)
+            if ((inputN != 0) & (inputRadius != 0))
             {
-                // Arugment exception would be thrown in case the value of N is such that
-                // the ScalarEncoderImproved would result in no distinct encoding.
-                Assert.ThrowsException<System.ArgumentException>(() => ReturnSDRsForEncoderSetting(i, encoderSettings));              
+                // If the value of N and Radius both are given then proper argument exception is generated on the new encoder.
+                // One value should be calculated based on another value
+                Assert.ThrowsException<ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
+            }
+
+
+            else if ((inputN != 0) & (inputResolution != 0))
+            {
+                // If the value of N and Resolution both are given then proper argument exception is generated on the new encoder.
+                // One value should be calculated based on another value
+                Assert.ThrowsException<ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
+            }
+
+            else if ((inputResolution != 0) & (inputRadius != 0))
+            {
+                // If the value of Resolution and Radius both are given then proper argument exception is generated on the new encoder.
+                // One value should be calculated based on another value
+                Assert.ThrowsException<ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
+            }
+
+            else if ((inputN != 0) & (inputRadius != 0) & (inputResolution != 0))
+            {
+                // N, Radius and Resolution should be mutually exclusive parameters.
+                // If all the values (N, Radius and Resolution) are provided to the ScalarEncoder for encoding,
+                // then Exception is generated properly.
+                // Remaining two values should be calculated based on one value
+                Assert.ThrowsException<ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
+            }
+
+            // This else block will run if N, Resolution and Radius are Mutually Exclusive
+            else
+            {
+                ScalarEncoderImproved newEncoderObj = new ScalarEncoderImproved(encoderSettings);
+
+                // List to keep the encoded data as a integer array
+                List<int[]> encodedList = new List<int[]> { };
+
+                for (int i = 0; i < 10; i++)
+                {
+                    int[] encoded_data = newEncoderObj.Encode(i);
+
+                    // Adding the encoded data to the List
+                    encodedList.Add(encoded_data);
+                }
+
+                // For a proper encoder settings, distinct encoding is generated by the improved encoder
+                Assert.IsTrue(CheckDistinctArrayElement(encodedList));
 
             }
+
         }
+
 
 
 
