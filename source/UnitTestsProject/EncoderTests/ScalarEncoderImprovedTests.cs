@@ -104,7 +104,7 @@ namespace UnitTestsProject.EncoderTests
 
 
         [TestMethod]
-        [TestCategory("categori")]
+        [TestCategory("categori1")]
         [DataRow(6)]
         [DataRow(7)]
         [DataRow(8)]
@@ -115,7 +115,7 @@ namespace UnitTestsProject.EncoderTests
         [DataRow(24)]
         [DataRow(25)]
         [DataRow(26)]
-        public void TestEncodingByUnimprovedEncoderProvidedTotalBits(int inputN)
+        public void TestEncodingByUnImprovedEncoderProvidedTotalBits(int inputN)
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
             encoderSettings.Add("W", 5);
@@ -184,7 +184,7 @@ namespace UnitTestsProject.EncoderTests
 
 
         [TestMethod]
-        [TestCategory("categori")]
+        [TestCategory("categori2")]
         [DataRow(6)]
         [DataRow(7)]
         [DataRow(8)]
@@ -258,6 +258,210 @@ namespace UnitTestsProject.EncoderTests
             }
 
         }
+
+
+
+        [TestMethod]
+        [TestCategory("categori3")]
+        [DataRow(0.1)]
+        [DataRow(0.3)]
+        [DataRow(0.5)]
+        [DataRow(0.6)]
+        [DataRow(0.9)]
+        [DataRow(1)]
+        [DataRow(1.4)]
+        [DataRow(2)]
+        [DataRow(5)]
+        [DataRow(7)]
+        public void TestEncodingByUnImprovedEncoderProvidedResolution(double inputResolution)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 7);
+            encoderSettings.Add("N", (int)0);
+            encoderSettings.Add("MinVal", (double)2);
+            encoderSettings.Add("MaxVal", (double)39);
+            encoderSettings.Add("Radius", (double)0);
+            encoderSettings.Add("Resolution", (double)inputResolution);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+            // Initializing the encoder object with required settings
+            ScalarEncoder UnImprovedEncoderObj = new ScalarEncoder(encoderSettings);
+
+            // This value makes sure that scalars are encoded differently
+            // which are maximum 1 distance apart of each other.
+            double requiredResolution = 1.0;
+
+            // For some values of Resolution, in our case 0.6 and 2.0, IndexOutOfRangeException is thrown by the old scalar encoder while encoding
+            // This is due to the minbin and maxbin problem while setting index for encoding
+            // In newer version this is solved
+            if (((double)encoderSettings["Resolution"] > requiredResolution) & ((double)encoderSettings["Resolution"] != 0.6 & (double)encoderSettings["Resolution"] != 2.0))
+            {
+
+                // List to append the encoded data from the scalar encoder when the value of Resolution is higher than threshold
+                List<int[]> encodedListForHighResolution = new List<int[]> { };
+
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int[] encoded_data = UnImprovedEncoderObj.Encode(i);
+                    // Adding the encoded data to an List for comparision
+                    encodedListForHighResolution.Add(encoded_data);
+                }
+
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with false as the old version of scalar encoder
+                // does not provides unique encoding.   
+                Assert.IsFalse(CheckDistinctArrayElement(encodedListForHighResolution));
+
+            }
+            // Run encoding if the value of Resolution is more than required.
+            // If the value of Resolution is less than or equal to 1.0 then encoding is distinct by the older version of scalar encoder.
+            // Some values leads to indexoutofrange exception, this is because of the way how N is calculated.
+            // In newer version this is solved.
+            else if (((double)encoderSettings["Resolution"] <= requiredResolution) & ((double)encoderSettings["Resolution"] != 0.6 & (double)encoderSettings["Resolution"] != 2.0))
+            {
+
+                // List to append the encoded data from the scalar encoder when the value of resolution is enough for distinct encoding
+                List<int[]> encodedListForEnoughResolution = new List<int[]> { };
+
+                // Looping from  minimum-value that a encoder can encode to maximum value.
+                // Minimum Value and Maximum Value are used from encoder settings.
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int[] encoded_data = UnImprovedEncoderObj.Encode(i);
+
+                    // Adding the encoded data to an List
+                    encodedListForEnoughResolution.Add(encoded_data);
+                }
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with true as the new version of scalar encoder
+                // provides unique encoding if the value of Resolution is less than threshold, i.e. 1.
+                Assert.IsTrue(CheckDistinctArrayElement(encodedListForEnoughResolution));
+            }
+
+            // When encoding for some input space, with the above settings,
+            // In our case, resolution 0.6 and 2.0 results in IndexOutOfRange Exception for some input spaces
+            // This is because of how the value of N is calculated in older version inside the Encode method.
+            else if (((double)encoderSettings["Resolution"] == 0.6) & ((double)encoderSettings["Resolution"] == 2.0))
+            {
+                // Variable to track number of exception occured
+                int exceptionCounter = 0;
+
+                // List to append the encoded data from the scalar encoder when the value of resolution is enough for distinct encoding
+                List<int[]> encodedListForEnoughResolution = new List<int[]> { };
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    
+
+                    // Getting the encoding of data
+                    // We are using try and catch block because IndexOutOfRange exception occurs at random value of input data , which needs to be encoded
+                    // Using try catch block to catch the exception and Assertion is done for IndexOutOfRangeException
+                    try
+                    {
+                        int[] encoded_data = UnImprovedEncoderObj.Encode(i);
+
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        // Increasing the counter when exception is occured
+                        exceptionCounter++;
+
+                        // Assertion is done in case Exception is thrown
+                        // OPTIONAL
+                        Assert.ThrowsException<IndexOutOfRangeException>(() => UnImprovedEncoderObj.Encode(i));
+
+                    }
+
+                }
+                // Exception is occured for some input space while encoding with the above settings
+                // exceptionCounter variable will be increased if exception is thrown
+                // exceptionCounter should be at least one.
+                Assert.IsTrue(exceptionCounter > 0);
+            }
+
+        }
+
+
+
+        [TestMethod]
+        [TestCategory("categori4")]
+        [DataRow(0.1)]
+        [DataRow(0.3)]
+        [DataRow(0.5)]
+        [DataRow(0.6)]
+        [DataRow(0.9)]
+        [DataRow(1)]
+        [DataRow(1.4)]
+        [DataRow(2)]
+        [DataRow(5)]
+        [DataRow(7)]
+        public void TestEncodingByImprovedEncoderProvidedResolution(double inputResolution)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 7);
+            encoderSettings.Add("N", (int)0);
+            encoderSettings.Add("MinVal", (double)2);
+            encoderSettings.Add("MaxVal", (double)39);
+            encoderSettings.Add("Radius", (double)0);
+            encoderSettings.Add("Resolution", (double)inputResolution);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+            // This value makes sure that scalars are encoded differently
+            // which are maximum 1 distance apart of each other.
+            double requiredResolution = 1.0;
+
+            if ((double)encoderSettings["Resolution"] > requiredResolution)
+            {
+                // Looping from  minimum-value that a encoder can encode to maximum value.
+                // Minimum Value and Maximum Value are used from encoder settings.
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // If the value of Resolution is high
+                    // the Improved version of ScalarEncoder will generate exception.
+                    // Exception is thrown while initializing the encoder with the encoder settings,
+                    // this prevents un-necessary steps.
+                    // This makes sure that only distinct encoding passes
+                    Assert.ThrowsException<System.ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
+                }
+            }
+            // If the value of Resolution is less than or equal to 1.0 then encoding is distinct by the new version of scalar encoder
+            else
+            {
+
+                // Initializing the encoder object
+                ScalarEncoderImproved ImprovedEncoderObj = new ScalarEncoderImproved(encoderSettings);
+
+                // List to append the encoded data from the scalar encoder when the value of Resolution is enough for distinct encoding
+                List<int[]> encodedListForEnoughResolution = new List<int[]> { };
+
+                // Looping from  minimum-value that a encoder can encode to maximum value.
+                // Minimum Value and Maximum Value are used from encoder settings.
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int[] encoded_data = ImprovedEncoderObj.Encode(i);
+
+                    // Adding the encoded data to an List
+                    encodedListForEnoughResolution.Add(encoded_data);
+                }
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with true as the new version of scalar encoder
+                // provides unique encoding if the value of N is equal to or more than a threshold.
+                Assert.IsTrue(CheckDistinctArrayElement(encodedListForEnoughResolution));
+            }
+
+        }
+
+
 
 
         /// <summary>
