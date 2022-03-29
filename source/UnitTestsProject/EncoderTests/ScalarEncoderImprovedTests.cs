@@ -68,11 +68,10 @@ namespace UnitTestsProject.EncoderTests
 
 
         /// <summary>
-        /// Function to check if a List<int[]> has unique integer array elements
-        /// returns true if the List of integer array is unique
+        /// Function to check if a List has unique integer array elements
         /// </summary>
-        /// <param name="resultArray"></param>
-        /// <returns></returns>
+        /// <param name="resultArray">List of integer arrays that consists of encoded datas</param>
+        /// <returns>Boolean: True if the parameter passed to it is unique.</returns>
         public static Boolean CheckDistinctArrayElement(List<int []> resultArray)
         {
             bool isDistinctElement = true;
@@ -105,8 +104,7 @@ namespace UnitTestsProject.EncoderTests
 
 
         [TestMethod]
-        [TestCategory("ScalarEncoderImprveddd")]
-        [DataRow(5)]
+        [TestCategory("categori")]
         [DataRow(6)]
         [DataRow(7)]
         [DataRow(8)]
@@ -130,9 +128,6 @@ namespace UnitTestsProject.EncoderTests
             encoderSettings.Add("ClipInput", (bool)true);
             encoderSettings.Add("Name", "TestScalarEncoderImproved");
             encoderSettings.Add("IsRealCortexModel", false);
-
-            // List to append the encoded data from the scalar encoder
-            List<int[]> encodedList = new List<int[]> { };
 
             ScalarEncoder UnImprovedEncoderObj = new ScalarEncoder(encoderSettings);
 
@@ -174,7 +169,8 @@ namespace UnitTestsProject.EncoderTests
                 {
                     // Getting the encoding of data
                     int [] encoded_data = UnImprovedEncoderObj.Encode(i);
-                    // Adding the encoded data to an List for comparision
+
+                    // Adding the encoded data to an List
                     encodedListForEnoughTotalBits.Add(encoded_data);
                 }
                 // Checks if the List of integer array consists of unique elements.
@@ -189,7 +185,6 @@ namespace UnitTestsProject.EncoderTests
 
         [TestMethod]
         [TestCategory("categori")]
-        [DataRow(5)]
         [DataRow(6)]
         [DataRow(7)]
         [DataRow(8)]
@@ -214,10 +209,7 @@ namespace UnitTestsProject.EncoderTests
             encoderSettings.Add("Name", "TestScalarEncoderImproved");
             encoderSettings.Add("IsRealCortexModel", false);
 
-            // List to append the encoded data from the scalar encoder
-            List<int[]> encodedList = new List<int[]> { };
 
-            ScalarEncoderImproved ImprovedEncoderObj = new ScalarEncoderImproved(encoderSettings);
 
             // This value refers to the total different encoding that a ScalarEncoder can encode.
             // If the range of data that we need to encode is more than the total different encoding that our ScalarEncoder can encode then
@@ -226,28 +218,26 @@ namespace UnitTestsProject.EncoderTests
 
             if ((int)encoderSettings["N"] < requiredTotalBits)
             {
-                // List to append the encoded data from the scalar encoder when the value of N is too Low
-                List<int[]> encodedListForLowTotalBits = new List<int[]> { };
-
                 // Looping from  minimum-value that a encoder can encode to maximum value.
                 // Minimum Value and Maximum Value are used from encoder settings.
                 for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
                 {
-                    // Getting the encoding of data
-                    int[] encoded_data = ImprovedEncoderObj.Encode(i);
-                    // Adding the encoded data to an List for comparision
-                    encodedListForLowTotalBits.Add(encoded_data);
+                    // If the value of N is too low, 
+                    // the Improved version of ScalarEncoder will generate exception.
+                    // Exception is thrown while initializing the encoder with the encoder settings,
+                    // this prevents un-necessary steps.
+                    // This makes sure that only distinct encoding passes
+                    Assert.ThrowsException<System.ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
                 }
 
-                // Checks if the List of integer array consists of unique elements.
-                // Assertion is done with false as the old version of scalar encoder
-                // does not provides unique encoding.   
-                Assert.IsFalse(CheckDistinctArrayElement(encodedListForLowTotalBits));
-
             }
-            // If the value of N is more than or equal to a required value then encoding is distinct by old scalar encoder
+            // If the value of N is more than or equal to a required value then encoding is distinct by the scalar encoder
             else
             {
+
+                // Initializing the encoder object
+                ScalarEncoderImproved ImprovedEncoderObj = new ScalarEncoderImproved(encoderSettings);
+
                 // List to append the encoded data from the scalar encoder when the value of N is enough for distinct encoding
                 List<int[]> encodedListForEnoughTotalBits = new List<int[]> { };
 
@@ -257,13 +247,13 @@ namespace UnitTestsProject.EncoderTests
                 {
                     // Getting the encoding of data
                     int[] encoded_data = ImprovedEncoderObj.Encode(i);
-                    // Adding the encoded data to an List for comparision
+
+                    // Adding the encoded data to an List
                     encodedListForEnoughTotalBits.Add(encoded_data);
                 }
                 // Checks if the List of integer array consists of unique elements.
-                // Assertion is done with true as the old version of scalar encoder
+                // Assertion is done with true as the new version of scalar encoder
                 // provides unique encoding if the value of N is equal to or more than a threshold.
-
                 Assert.IsTrue(CheckDistinctArrayElement(encodedListForEnoughTotalBits));
             }
 
