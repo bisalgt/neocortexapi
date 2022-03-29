@@ -295,7 +295,7 @@ namespace UnitTestsProject.EncoderTests
             double requiredResolution = 1.0;
 
             // For some values of Resolution, in our case 0.6 and 2.0, IndexOutOfRangeException is thrown by the old scalar encoder while encoding
-            // This is due to the minbin and maxbin problem while setting index for encoding
+            // This is due to the value of N calculated in the older version
             // In newer version this is solved
             if (((double)encoderSettings["Resolution"] > requiredResolution) & ((double)encoderSettings["Resolution"] != 0.6 & (double)encoderSettings["Resolution"] != 2.0))
             {
@@ -347,7 +347,7 @@ namespace UnitTestsProject.EncoderTests
             // When encoding for some input space, with the above settings,
             // In our case, resolution 0.6 and 2.0 results in IndexOutOfRange Exception for some input spaces
             // This is because of how the value of N is calculated in older version inside the Encode method.
-            else if (((double)encoderSettings["Resolution"] == 0.6) & ((double)encoderSettings["Resolution"] == 2.0))
+            else if (((double)encoderSettings["Resolution"] == 0.6) || ((double)encoderSettings["Resolution"] == 2.0))
             {
                 // Variable to track number of exception occured
                 int exceptionCounter = 0;
@@ -455,13 +455,207 @@ namespace UnitTestsProject.EncoderTests
                 }
                 // Checks if the List of integer array consists of unique elements.
                 // Assertion is done with true as the new version of scalar encoder
-                // provides unique encoding if the value of N is equal to or more than a threshold.
+                // provides unique encoding if the value Resoulution is more than 1.
                 Assert.IsTrue(CheckDistinctArrayElement(encodedListForEnoughResolution));
             }
 
         }
 
 
+
+
+        [TestMethod]
+        [TestCategory("categori5")]
+        [DataRow(0.3)]
+        [DataRow(0.7)]
+        [DataRow(1.5)]
+        [DataRow(4)]
+        [DataRow(4.7)]
+        [DataRow(5)]
+        [DataRow(9)]
+        [DataRow(24)]
+        [DataRow(25)]
+        [DataRow(26)]
+        public void TestEncodingByUnImprovedEncoderProvidedRadius(double inputRadius)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 9);
+            encoderSettings.Add("N", (int)0);
+            encoderSettings.Add("MinVal", (double)115);
+            encoderSettings.Add("MaxVal", (double)159);
+            encoderSettings.Add("Radius", (double)inputRadius);
+            encoderSettings.Add("Resolution", (double)0);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+            ScalarEncoder UnImprovedEncoderObj = new ScalarEncoder(encoderSettings);
+
+            // The value of Radius that leads to distinct encoding is the value of total number of active bits.
+            // Encoder will encode distinct value if the value of Radius is less than or equal to active bits.
+            double requiredRadius = (int)encoderSettings["W"];
+
+            // checking if the value of Radius is more than required.
+            // Radius are also checked with values 0.7, 24 and 25 because these values results in exception for some input space.
+            // If the value is more than required and not 0.7, 24 or 25 then encoding is done without exception.
+            // Since encoding is not distinct, it assertion with false will pass.
+            if (((double)encoderSettings["Radius"] > requiredRadius) & ((double)encoderSettings["Radius"] != 0.7) & ((double)encoderSettings["Radius"] != 24.0) & ((double)encoderSettings["Radius"] != 25.0))
+            {
+                // List to append the encoded data from the scalar encoder when the value of N is too Low
+                List<int[]> encodedListForHighRadius = new List<int[]> { };
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int[] encoded_data = UnImprovedEncoderObj.Encode(i);
+                    // Adding the encoded data to an List for comparision
+                    encodedListForHighRadius.Add(encoded_data);
+                }
+
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with false as the old version of scalar encoder
+                // does not provides unique encoding if the value of radius is more than a threshold.   
+                Assert.IsFalse(CheckDistinctArrayElement(encodedListForHighRadius));
+
+            }
+            // If the value of Radius is less than or equal to required value of Radius, then encoding is distinct by old scalar encoder
+            // Encoding with Radius = 0.7 or 24 or 25 will result in exception
+            else if(((double)encoderSettings["Radius"] <= requiredRadius) & ((double)encoderSettings["Radius"] != 0.7) & ((double)encoderSettings["Radius"] != 24.0) & ((double)encoderSettings["Radius"] != 25.0))
+            {
+                // List to append the encoded data from the scalar encoder when the value of N is enough for distinct encoding
+                List<int[]> encodedListForEnoughTotalBits = new List<int[]> { };
+
+                // Looping from  minimum-value that a encoder can encode to maximum value.
+                // Minimum Value and Maximum Value are used from encoder settings.
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int[] encoded_data = UnImprovedEncoderObj.Encode(i);
+
+                    // Adding the encoded data to an List
+                    encodedListForEnoughTotalBits.Add(encoded_data);
+                }
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with true as the old version of scalar encoder
+                // provides unique encoding
+
+                Assert.IsTrue(CheckDistinctArrayElement(encodedListForEnoughTotalBits));
+            }
+
+            else if (((double)encoderSettings["Radius"] == 0.7) || ((double)encoderSettings["Radius"] == 24) || ((double)encoderSettings["Radius"] == 25))
+            {
+                // Variable to track number of exception occured
+                int exceptionCounter = 0;
+
+                // List to append the encoded data from the scalar encoder when the value of resolution is enough for distinct encoding
+                List<int[]> encodedListForEnoughResolution = new List<int[]> { };
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+
+
+                    // Getting the encoding of data
+                    // We are using try and catch block because IndexOutOfRange exception occurs at random value of input data , which needs to be encoded
+                    // Using try catch block to catch the exception and Assertion is done for IndexOutOfRangeException
+                    try
+                    {
+                        int[] encoded_data = UnImprovedEncoderObj.Encode(i);
+
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        // Increasing the counter when exception is occured
+                        exceptionCounter++;
+
+                        // Assertion is done in case Exception is thrown
+                        // OPTIONAL
+                        Assert.ThrowsException<IndexOutOfRangeException>(() => UnImprovedEncoderObj.Encode(i));
+
+                    }
+
+                }
+                // Exception is occured for some input space while encoding with the above settings
+                // exceptionCounter variable will be increased if exception is thrown
+                // exceptionCounter should be at least one.
+                Assert.IsTrue(exceptionCounter > 0);
+            }
+
+        }
+
+
+
+        [TestMethod]
+        [TestCategory("categori6")]
+        [DataRow(0.3)]
+        [DataRow(0.7)]
+        [DataRow(1.5)]
+        [DataRow(4)]
+        [DataRow(4.7)]
+        [DataRow(5)]
+        [DataRow(9)]
+        [DataRow(24)]
+        [DataRow(25)]
+        [DataRow(26)]
+        public void TestEncodingByImprovedEncoderProvidedRadius(double inputRadius)
+        {
+            Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
+            encoderSettings.Add("W", 9);
+            encoderSettings.Add("N", (int)0);
+            encoderSettings.Add("MinVal", (double)115);
+            encoderSettings.Add("MaxVal", (double)159);
+            encoderSettings.Add("Radius", (double)inputRadius);
+            encoderSettings.Add("Resolution", (double)0);
+            encoderSettings.Add("Periodic", (bool)false);
+            encoderSettings.Add("ClipInput", (bool)true);
+            encoderSettings.Add("Name", "TestScalarEncoderImproved");
+            encoderSettings.Add("IsRealCortexModel", false);
+
+            // The value of Radius that leads to distinct encoding is the value of total number of active bits.
+            // Encoder will encode distinct value if the value of Radius is less than or equal to active bits.
+            double requiredRadius = (int)encoderSettings["W"];
+
+            if ((double)encoderSettings["Radius"] > requiredRadius)
+            {
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // If the value of Radius is high than the required radius then
+                    // the Improved version of ScalarEncoder will generate exception.
+                    // Exception is thrown because encoding would result in similar SDRs for different input spaces.
+                    // Exception is thrown while initializing the encoder with the encoder settings,
+                    // This prevents un-necessary steps.
+                    // This makes sure that only distinct encoding passes
+                    Assert.ThrowsException<System.ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
+                }
+            }
+            // If the value of Radius is less than or equal to the requiredRadius (which is the value of total number of input bits)
+            // then encoding is distinct by the new version of scalar encoder
+            else
+            {
+
+                // Initializing the encoder object
+                ScalarEncoderImproved ImprovedEncoderObj = new ScalarEncoderImproved(encoderSettings);
+
+                // List to append the encoded data from the scalar encoder when the value of Resolution is enough for distinct encoding
+                List<int[]> encodedListForEnoughRadius = new List<int[]> { };
+
+                for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
+                {
+                    // Getting the encoding of data
+                    int[] encoded_data = ImprovedEncoderObj.Encode(i);
+
+                    // Adding the encoded data to an List
+                    encodedListForEnoughRadius.Add(encoded_data);
+                }
+                // Checks if the List of integer array consists of unique elements.
+                // Assertion is done with true as the new version of scalar encoder
+                // provides unique encoding if the value of Radius is less than or equal to
+                // the required value of radius for distinct encoding.
+                Assert.IsTrue(CheckDistinctArrayElement(encodedListForEnoughRadius));
+            }
+
+        }
 
 
         /// <summary>
