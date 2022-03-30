@@ -117,8 +117,20 @@ This had been implemented on the forked repository[Adding Parameter Checks](http
 
 For effective handling the parameters when there are values in case of multiple mutually exclusive parameters (N, Radius, Resolution), Resolution is set to 0. This makes it easy to implement the if else block inside InitEncoder.
 
-The Scalar Encoder is made interactive by giving the User option to enter data on the console. Based on the input string by the User, the value of N was set and decisions was taken accordingly for SDRs generations. Image is attached for the use case.
+The Scalar Encoder is made interactive by giving the User option to enter data on the console. Based on the input string by the User, the value of N, Radius or Resolution could be updated. If users enter yes in the console, the value would be updated and distinct encoding would be generated. If user enters no, the value for either N or Radius or Resolution is not updated. Argument exception is thrown in such case.
+
 ![Interactive Terminal ](./Images/Interactive-Terminal.png)
+
+
+#### Examples of Argument Exceptions
+
+![Argument Exception for incorrect Total Bits](./Images/ArgumentExceptionForTotalBits.png)
+
+
+![Argument Exception for incorrect Resolution](./Images/ArgumentExceptionForResolution.png)
+
+
+![Argument Exception for incorrect Radius](./Images/ArgumentExceptionForRadius.png)
 
 ### Finding 11
 
@@ -134,3 +146,8 @@ Proper exception (System.FormatException) is handled if the supplied arguments i
 Image is attached to show the usecase:
 
 ![ScalarEncoder called from Command Line](./Images/ScalarEncoderFromCLI.png)
+
+
+### Implementation of UnitTests
+
+Proper Unitest had been implemented that compares improved version of ScalarEncoder and unimproved version of scalar encoder with the similar parameter. UnitTest can be found on : [Unit Test for Scalar Encoder Improved](https://github.com/bisalgt/neocortexapi/blob/master/source/UnitTestsProject/EncoderTests/ScalarEncoderImprovedTests.cs)
