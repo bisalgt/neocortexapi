@@ -5,8 +5,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+
 namespace ScalarEncoderImproved
 {
+    /// <summary>
+    /// Class where member functions is able to take input from the user console
+    /// Values of encoderSettingscan be updated or can be left as it is.
+    /// This results in either distinct encoding or exception by the ScalarEncoderImproved.
+    /// </summary>
     class Program
     {
         /// <summary>
@@ -48,9 +54,10 @@ namespace ScalarEncoderImproved
         /// according to the choice of the user. EncoderSettings updates value of N for a resolution of 1 if user choose yes.
         /// If the user choose "no" then encoderSettings will be left untouched.
         /// This makes sure that user can get distinct encoding for a Resolution of 1.
+        /// Similarly Resolution and Radius are also checked and updated to generate distinct encoding.
         /// </summary>
         /// <param name="encoderSettings"></param>
-        /// <returns></returns>
+        /// <returns>EncoderSettingsUpdated</returns>
         public static Dictionary<string, object> CheckEncoderSettings(Dictionary<string, object> encoderSettings)
         {
             // if condition checking if N is provided
@@ -143,13 +150,13 @@ namespace ScalarEncoderImproved
         public static Dictionary<string, object> GetDefaultEncoderSettings()
         {
             Dictionary<string, object> encoderSettings = new Dictionary<string, object>();
-            encoderSettings.Add("N", 6);
-            encoderSettings.Add("W", 3);
-            encoderSettings.Add("MinVal", (double)1);
-            encoderSettings.Add("MaxVal", (double)8);
+            //encoderSettings.Add("N", 5);
+            encoderSettings.Add("W", 5);
+            encoderSettings.Add("MinVal", (double)22);
+            encoderSettings.Add("MaxVal", (double)39);
             //encoderSettings.Add("Radius", (double)6);
-            //encoderSettings.Add("Resolution", (double)2.0);
-            encoderSettings.Add("Periodic", (bool)true);
+            encoderSettings.Add("Resolution", (double)3);
+            encoderSettings.Add("Periodic", (bool)false);
             encoderSettings.Add("ClipInput", (bool)true);
             
             // returning the checked encoder settings
@@ -162,70 +169,16 @@ namespace ScalarEncoderImproved
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            //if(args != null)
-            //{
-            //    Console.WriteLine(args)
-            //}
-            Debug.WriteLine("Inside the Main of ImproveScalarEncoder Namespace.\n");
-            Console.WriteLine("Inside the Main of ImproveScalarEncoder Namespace.\n");
+
+
 
             Dictionary<string, object> encoderSettings = GetDefaultEncoderSettings();
 
-            // checking different values of Resolution at a time
-            //for (double i = 1; i < 10; i++)
-            //{
-            //encoderSettings.Add("Resolution", i);
-            //Debug.WriteLine($"------Output for Resolution {i}-------------------");
+            NeoCortexApi.Encoders.ScalarEncoderImproved encoderObject = new NeoCortexApi.Encoders.ScalarEncoderImproved(encoderSettings);
+            EncodeForParticularSetting(encoderObject);
 
-            //try
-            // {
-            //        NeoCortexApi.Encoders.ScalarEncoder encoderObject = new NeoCortexApi.Encoders.ScalarEncoder(encoderSettings);
-            //        CheckDifferentConfiguration(encoderObject);
-
-            //    }
-            // catch (IndexOutOfRangeException ex)
-            //    {
-            //        Debug.WriteLine($"Index out of range exception at {i}");
-
-            //    }
-            //    catch (OverflowException ex)
-            //    {
-            //        //Debug.WriteLine($"Overflow exception at {i}, {ex.StackTrace}");
-            //        //Debug.WriteLine($"Source : {ex.Source}");
-            //        //Debug.WriteLine($"TargetSite : {ex.TargetSite}");
-            //        //if (ex.Data.Count > 0)
-            //        //{
-            //        //    Debug.WriteLine("  Extra details:");
-            //        //    foreach (DictionaryEntry de in ex.Data)
-            //        //        Debug.WriteLine("    Key: {0,-20}      Value: {1}",
-            //        //                          "'" + de.Key.ToString() + "'", de.Value);
-            //        //}
-            //        //Debug.WriteLine($"Data : {ex.Data}");
-            //        Debug.WriteLine(ex.GetBaseException());
-
-
-            //    }
-            //    finally
-            //    {
-            //        encoderSettings.Remove("Resolution");
-            //        Debug.WriteLine("-------------------------");
-            //    }
-            //}
-
-            try
-            {
-                NeoCortexApi.Encoders.ScalarEncoderImproved encoderObject = new NeoCortexApi.Encoders.ScalarEncoderImproved(encoderSettings);
-                EncodeForParticularSetting(encoderObject);
-
-            }
-            catch (IndexOutOfRangeException ex)
-            {
-                Debug.WriteLine($"Index out of range exception at resolution, {ex.StackTrace}");
-
-            }
 
         }
-
 
         /// <summary>
         /// function to produce output for a certain configuration of encoder settings
