@@ -20,6 +20,7 @@ namespace UnitTestsProject.EncoderTests
 
     /// <summary>
     /// Defines the <see cref="ScalarEncoderImprovedTests"/>
+    /// Test class that compares the encoding behaviour of Improved and UnImproved Scalar Encoder for similar settings.
     /// </summary>
     [TestClass]
     public class ScalarEncoderImprovedTests
@@ -87,16 +88,17 @@ namespace UnitTestsProject.EncoderTests
         /// </summary>
         /// <param name="resultArray">List of integer arrays that consists of encoded datas</param>
         /// <returns>Boolean: True if the list of encoded datas passed to this function is unique.</returns>
-        public static Boolean CheckDistinctArrayElement(List<int []> resultArray)
+        public static Boolean CheckDistinctArrayElement(List<int[]> resultArray)
         {
             bool isDistinctElement = true;
 
-            for (int i = 0; i < resultArray.Count; i++) {
+            for (int i = 0; i < resultArray.Count; i++)
+            {
                 for (int j = 0; j < resultArray.Count; j++)
                 {
                     if (i != j)
                     {
-                        
+
                         int match = 0;
                         for (int k = 0; k < resultArray[0].Length; k++)
                         {
@@ -105,7 +107,7 @@ namespace UnitTestsProject.EncoderTests
                                 match++;
                             }
                         }
-                        if(match == resultArray[0].Length)
+                        if (match == resultArray[0].Length)
                         {
                             isDistinctElement = false;
                         }
@@ -162,7 +164,7 @@ namespace UnitTestsProject.EncoderTests
                                                                                                                                               // in Periodic and Non-Periodic encoding. This logic is implemented
                                                                                                                                               // inside the newer version of ScalarEncoder to provide distinct encoding.
 
-            if ((int)encoderSettings["N"] < requiredTotalBits) 
+            if ((int)encoderSettings["N"] < requiredTotalBits)
             {
                 // List to append the encoded data from the scalar encoder when the value of N is too Low
                 List<int[]> encodedListForLowTotalBits = new List<int[]> { };
@@ -172,7 +174,7 @@ namespace UnitTestsProject.EncoderTests
                 for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
                 {
                     // Getting the encoding of data
-                    int [] encoded_data = UnImprovedEncoderObj.Encode(i);
+                    int[] encoded_data = UnImprovedEncoderObj.Encode(i);
                     // Adding the encoded data to an List for comparision
                     encodedListForLowTotalBits.Add(encoded_data);
                 }
@@ -184,7 +186,7 @@ namespace UnitTestsProject.EncoderTests
 
             }
             // If the value of N is more than or equal to a required value then encoding is distinct by old scalar encoder
-            else 
+            else
             {
                 // List to append the encoded data from the scalar encoder when the value of N is enough for distinct encoding
                 List<int[]> encodedListForEnoughTotalBits = new List<int[]> { };
@@ -194,7 +196,7 @@ namespace UnitTestsProject.EncoderTests
                 for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
                 {
                     // Getting the encoding of data
-                    int [] encoded_data = UnImprovedEncoderObj.Encode(i);
+                    int[] encoded_data = UnImprovedEncoderObj.Encode(i);
 
                     // Adding the encoded data to an List
                     encodedListForEnoughTotalBits.Add(encoded_data);
@@ -202,10 +204,10 @@ namespace UnitTestsProject.EncoderTests
                 // Checks if the List of integer array consists of unique elements.
                 // Assertion is done with true as the old version of scalar encoder
                 // provides unique encoding if the value of N is equal to or more than a threshold.
-                
+
                 Assert.IsTrue(CheckDistinctArrayElement(encodedListForEnoughTotalBits));
             }
-            
+
         }
 
         #endregion
@@ -581,7 +583,7 @@ namespace UnitTestsProject.EncoderTests
 
                 for (double i = (double)encoderSettings["MinVal"]; i < (double)encoderSettings["MaxVal"] + 1; i++)
                 {
-                    
+
 
                     // Getting the encoding of data
                     // We are using try and catch block because IndexOutOfRange exception occurs at random value of input data , which needs to be encoded
@@ -757,7 +759,7 @@ namespace UnitTestsProject.EncoderTests
             }
             // If the value of Radius is less than or equal to required value of Radius, then encoding is distinct by old scalar encoder
             // Encoding with Radius = 0.7 or 24 or 25 will result in exception
-            else if(((double)encoderSettings["Radius"] <= requiredRadius) & ((double)encoderSettings["Radius"] != 0.7) & ((double)encoderSettings["Radius"] != 24.0) & ((double)encoderSettings["Radius"] != 25.0))
+            else if (((double)encoderSettings["Radius"] <= requiredRadius) & ((double)encoderSettings["Radius"] != 0.7) & ((double)encoderSettings["Radius"] != 24.0) & ((double)encoderSettings["Radius"] != 25.0))
             {
                 // List to append the encoded data from the scalar encoder when the value of N is enough for distinct encoding
                 List<int[]> encodedListForEnoughTotalBits = new List<int[]> { };
@@ -1134,6 +1136,91 @@ namespace UnitTestsProject.EncoderTests
         #endregion
 
 
+        #region Test Case to show how initializing the default value of Radius  to negative leads to OverFlowException in UnImproved ScalarEncoder
+
+        /// <summary>
+        /// Test Case to show how default value initialized in EncoderBase.cs file with Radius: -1 leads to System.OverFlowException in OldScalarEncoder.
+        /// This is caused because old version is not handling the mutually exclusiveness properties of N, Radius and Resolution.
+        /// (Non-Deterministic behaviour of program is observed.)
+        /// </summary>
+        /// <param name="input"></param>
+        [TestMethod]
+        [TestCategory("ScalarEncoderImproved")]
+        [DataRow(3)]
+        [DataRow(5)]
+        [DataRow(7)]
+        [DataRow(8)]
+        public void TestingForNegativeValueOfRadiusForUnImprovedEncoder(int input)
+        {
+            // Getting the encoder settings from the GetEncoderSettings Helper function
+            Dictionary<string, object> encoderSettings =
+
+                GetEncoderSettings
+                (
+                    W: 3,
+                    MinVal: 0,
+                    MaxVal: 9,
+                    Resolution: 1,
+                    Radius: -1
+                );
+
+            ScalarEncoder encoderObj = new ScalarEncoder(encoderSettings);
+
+
+            // Assertion for the value of N to be Negative
+            // This is caused because old encoder doesnot makes N, Radius or Resolution mutually exclusive
+            // Default value of Radius was set negative inside Encoder base file
+            // This value caused the value of TotalBits to cause Negative.
+            // This results in OverFlowException.
+            Assert.IsTrue(encoderObj.N < 0);
+            // In case of old scalar encoder, OverflowException is thrown
+            Assert.ThrowsException<System.OverflowException>(() => encoderObj.Encode(input));
+        }
+
+        #endregion
+
+
+        #region Test Case to show how initializing the default value of Radius to negative leads to ArgumentException in Improved ScalarEncoder
+
+
+        /// <summary>
+        /// Test Case to show how default value initialized in EncoderBase.cs file with Radius: -1 leads to System.ArgumentException in New ScalarEncoder.
+        /// This is caused because new version is handling the mutually exclusiveness properties of N, Radius and Resolution.
+        /// The flow of program is controlled(Deterministic behaviour of program is observed.)
+        /// </summary>
+        /// <param name="input"></param>
+        [TestMethod]
+        [TestCategory("ScalarEncoderImprovedgi")]
+        [DataRow(3)]
+        [DataRow(5)]
+        [DataRow(7)]
+        [DataRow(8)]
+        public void TestingForNegativeValueOfRadiusForImprovedEncoder(int input)
+        {
+            // Getting the encoder settings from the GetEncoderSettings Helper function
+            Dictionary<string, object> encoderSettings =
+
+                GetEncoderSettings
+                (
+                    W: 3,
+                    MinVal: 0,
+                    MaxVal: 9,
+                    Resolution: 1,
+                    Radius: -1
+                );
+
+            // In the improved version of ScalarEncoder, Argument exception is checked making N, Radius and Resolution Mutually Exclusive
+            // Instead of trying to encode for incorrect configuration, argument exception is thrown while initializing the new scalar encoder object
+            Assert.ThrowsException<System.ArgumentException>(() => new ScalarEncoderImproved(encoderSettings));
+
+        }
+
+        #endregion
+
+
+
+
     }
 }
 
+        
