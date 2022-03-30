@@ -151,3 +151,7 @@ Image is attached to show the usecase:
 ### Implementation of UnitTests
 
 Proper Unitest had been implemented that compares improved version of ScalarEncoder and unimproved version of scalar encoder with the similar parameter. UnitTest can be found on : [Unit Test for Scalar Encoder Improved](https://github.com/bisalgt/neocortexapi/blob/master/source/UnitTestsProject/EncoderTests/ScalarEncoderImprovedTests.cs)
+
+
+### Link to the Presentation Video
+https://youtu.be/bwHDblQAuP4
